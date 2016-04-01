@@ -23,13 +23,15 @@ endif
 
 default: all
 
-all: memory_record hexq
+all: hexq
 
-hexq: hexq.cpp DirectedGraph.cpp
-	$(CXX) -g --std=c++11 $(DEFINES) $(FLAGS) hexq.cpp DirectedGraph.cpp $(LDFLAGS) -o hexq
-
-memory_record: memory_record.cpp
-	$(CXX) --std=c++11 $(DEFINES) $(FLAGS) memory_record.cpp $(LDFLAGS) -o memory_record
+hexq: hexq.cpp directed_graph.cpp directed_graph.hpp explained_assert.hpp hexq_level.cpp hexq_level.hpp
+	$(CXX) -g --std=c++11 $(DEFINES) $(FLAGS) hexq.cpp directed_graph.cpp hexq_level.cpp $(LDFLAGS) -o hexq
 
 clean:
-	rm -rf hexq memory_record *.o
+	rm -rf hexq *.o *.graph *.dot *.png *.dSYM
+.PHONY: clean
+
+graphs:
+	for f in *.dot; do dot -Tpng $$f > $$f.png; done
+.PHONY: graphs

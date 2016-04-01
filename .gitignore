@@ -1,5 +1,8 @@
 level_*.dot
 level_*.graph
+level_*.png
 hexq
 *.dSYM
 state_change_freq.txt
+html
+latex
