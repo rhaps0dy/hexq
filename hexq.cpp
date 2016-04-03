@@ -76,44 +76,51 @@ unique_ptr<vector<int> > ram_addresses_by_change_frequency(ALEInterface &ale) {
 	vector<pair<int, int> > freqs(RAM_SIZE);
 	for(int i=0; i<RAM_SIZE; i++)
 		frequency_file >> freqs[i].second >> freqs[i].first;
-	sort(freqs.begin(), freqs.end());
+	sort(freqs.rbegin(), freqs.rend());
 	unique_ptr<vector<int> > result(new vector<int>(RAM_SIZE));
 	for(int i=0; i<RAM_SIZE; i++)
 		(*result)[i] = freqs[i].second;
 	return move(result);
 }
 
-void build_level_graph(ALEInterface &ale, uInt16 addr, int level) {
+void build_level_graph(ALEInterface &ale, const vector<int> &addr_to_freq_ranking, uInt16 addr) {
 	constexpr int SECONDS = 60*1;
 	constexpr int MAX_STATE_VAL = 0x100;
 
+	const int level = addr_to_freq_ranking[addr];
 	DirectedGraph dg;
-	string graph_fname = "level_" + to_string(level) + ".graph";
+	string graph_fname_pref = "level_" + to_string(level) + "_pref_" + to_string(addr);
+	string graph_fname =  graph_fname_pref + ".graph";
 	ifstream graph_file(graph_fname);
 	if(!graph_file.is_open()) {
-		cerr << "Building level " << level << " graph\n";
+		cerr << "Building level " << level << " graph " << addr << "\n";
 		AUX_VARIABLES
 		unsigned n_actions = legal_actions.size();
-		bool state_possible[MAX_STATE_VAL];
 		// state x action -> state
-		vector<int> transitions(MAX_STATE_VAL*n_actions);
-		std::fill(transitions.begin(), transitions.end(), MAX_STATE_VAL);
 
-		addr = RAM_OFFSET + addr;
-		unsigned s = sys.peek(addr), ss = s;
-		state_possible[s] = true;
+		unsigned _prev_ram[RAM_SIZE], _cur_ram[RAM_SIZE];
+		unsigned *prev_ram = _prev_ram, *cur_ram = _cur_ram;
+		constexpr int NON_DET = -1;
+		constexpr int UNSEEN = MAX_STATE_VAL;
+		vector<int> transitions(MAX_STATE_VAL*n_actions, UNSEEN);
+		for(int i=0; i<RAM_SIZE; i++)
+			prev_ram[i] = sys.peek(RAM_OFFSET + i);
 		TIMED_RESETTING_LOOP({
 			unsigned a = rand() % n_actions;
 			ale.act(legal_actions[a]);
-			ss = ale.getRAM().get(addr);
-			ss = sys.peek(addr);
-			unsigned i = s*n_actions + a;
-			if(transitions[i] == MAX_STATE_VAL)
-				transitions[i] = ss;
-			else if(transitions[i] != ss)
-				transitions[i] = -1;
-			s = ss;
-			state_possible[s] = true;
+			unsigned a_s = sys.peek(RAM_OFFSET + addr)*n_actions + a;
+
+			// mark transitions as non-deterministic if they also change another variable
+			for(int i=0; i<RAM_SIZE; i++) {
+				cur_ram[i] = sys.peek(RAM_OFFSET + i);
+				if(addr_to_freq_ranking[i] > addr_to_freq_ranking[addr] && cur_ram[i] != prev_ram[i])
+					transitions[a_s] = NON_DET;
+			}
+			if(transitions[a_s] == UNSEEN)
+				transitions[a_s] = prev_ram[addr];
+			else if(transitions[a_s] != prev_ram[addr])
+				transitions[a_s] = -1;
+			std::swap(prev_ram, cur_ram);
 		});
 
 		dg.adj_list = vector<vector<int> >(MAX_STATE_VAL);
@@ -121,22 +128,22 @@ void build_level_graph(ALEInterface &ale, uInt16 addr, int level) {
 		for(int s=0; s<MAX_STATE_VAL; s++)
 			for(int a=0; a<n_actions; a++) {
 				int ss = transitions[s*n_actions + a];
-				if(ss == -1)
+				if(ss == NON_DET)
 					exits.push_back(s*n_actions + a);
-				else if(ss != MAX_STATE_VAL)
+				else if(ss != UNSEEN)
 					dg.adj_list[s].push_back(ss);
 			}
 		dg.save(graph_fname);
+		dg.save_dot(graph_fname_pref + "_orig.dot");
 		cout << exits.size() << endl;
 		for(size_t i=0; i<exits.size(); i++)
 			cout << "Action: " << exits[i]%n_actions << ", state: " << exits[i]/n_actions << endl;
 	}
 	dg.load(graph_fname);
-	dg.save_dot("altre.dot");
 	vector<int> scc;
 	int n_scc = dg.scc(scc);
 	unique_ptr<DirectedGraph> dag = dg.assignment_merge(scc, n_scc);
-	dag->save_dot("level_" + to_string(level) + ".dot");
+	dag->save_dot(graph_fname_pref + "_dag.dot");
 }
 
 int main(int argc, char *argv[]) {
@@ -151,7 +158,12 @@ int main(int argc, char *argv[]) {
 
 	ActionVect legal_actions = ale.getLegalActionSet();
 
-	unique_ptr<vector<int> > addr_by_freq = ram_addresses_by_change_frequency(ale);
-	build_level_graph(ale, (*addr_by_freq)[0], 0+1);
+	unique_ptr<vector<int> > _addr_by_freq = ram_addresses_by_change_frequency(ale);
+	vector<int> &addr_by_freq = *_addr_by_freq;
+	vector<int> addr_to_freq_ranking(RAM_SIZE);
+	for(size_t i=0; i<addr_by_freq.size(); i++) {
+		addr_to_freq_ranking[addr_by_freq[i]] = i;
+	}
+	build_level_graph(ale, addr_to_freq_ranking, addr_by_freq[0]);
 	return 0;
 }

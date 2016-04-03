@@ -18,7 +18,7 @@ void Tarjan(unsigned n, int &index, int &n_connected_components, vector<bool> &I
     D[n] = L[n] = index++;
     S.push_back(n);
     I[n] = true;
-    for (int i = 0; i < V[n].size(); ++i) {
+    for (size_t i = 0; i < V[n].size(); ++i) {
 		if (D[V[n][i]] < 0) {
 			Tarjan(V[n][i], index, n_connected_components, I, L, S, D, V);
 			L[n] = min(L[n], L[V[n][i]]);
@@ -43,7 +43,7 @@ int DirectedGraph::StronglyConnectedComponents(Assignment &assignment) const {
 	vector<bool> I(adj_list.size(), false);
 	assignment = Assignment(adj_list.size());
 	vector<int> S, D(adj_list.size(), -1);
-    for (int n = 0; n < adj_list.size(); ++n)
+    for (size_t n = 0; n < adj_list.size(); ++n)
 		if (D[n] < 0)
 			Tarjan(n, index, n_scc, I, assignment, S, D, adj_list);
 	return n_scc;
@@ -54,8 +54,8 @@ unique_ptr<DirectedGraph> DirectedGraph::MergeByAssignment(
 	vector<set<int> > adj_set(n_components);
 	// avoid repeating edges when we create the adjacency list
 	int sa, sb;
-	for(int i=0; i<adj_list.size(); i++) {
-		for(int j=0; j<adj_list[i].size(); j++)
+	for(size_t i=0; i<adj_list.size(); i++) {
+		for(size_t j=0; j<adj_list[i].size(); j++)
 			if((sa=assignment[i]) != (sb=assignment[adj_list[i][j]]))
 				adj_set[sa].insert(sb);
 	}
@@ -89,10 +89,10 @@ unique_ptr<DirectedGraph> DirectedGraph::MergeByAssignment(
 void DirectedGraph::SaveDot(const string filename) const {
 	ofstream f(filename);
 	f << "strict digraph {";
-	for(int i=0; i<adj_list.size(); i++)
+	for(size_t i=0; i<adj_list.size(); i++)
 		f << "\n" << i << ";";
-	for(int i=0; i<adj_list.size(); i++)
-		for(int j=0; j<adj_list[i].size(); j++) {
+	for(size_t i=0; i<adj_list.size(); i++)
+		for(size_t j=0; j<adj_list[i].size(); j++) {
 			f << '\n' << i << " -> " << adj_list[i][j];
 			if(edge_labels.size() != 0)
 				f << " [label = " << edge_labels[i][j] << "];";
@@ -105,14 +105,14 @@ void DirectedGraph::SaveDot(const string filename) const {
 void DirectedGraph::Save(const string filename) const {
 	ofstream f(filename);
 	f << adj_list.size() << endl;
-	for(int i=0; i<adj_list.size(); i++) {
+	for(size_t i=0; i<adj_list.size(); i++) {
 		f << adj_list[i].size();
-		for(int j=0; j<adj_list[i].size(); j++)
+		for(size_t j=0; j<adj_list[i].size(); j++)
 			f << ' ' << adj_list[i][j];
 		f << endl;
 	}
-	for(int i=0; i<edge_labels.size(); i++) {
-		for(int j=0; j<edge_labels[i].size(); j++)
+	for(size_t i=0; i<edge_labels.size(); i++) {
+		for(size_t j=0; j<edge_labels[i].size(); j++)
 			f << ' ' << edge_labels[i][j];
 		f << endl;
 	}
@@ -126,15 +126,15 @@ void DirectedGraph::Load(const string filename) {
 	f >> n;
 	adj_list.resize(n);
 	edge_labels.resize(n);
-	for(int i=0; i<adj_list.size(); i++) {
+	for(size_t i=0; i<adj_list.size(); i++) {
 		f >> n;
 		adj_list[i].resize(n);
-		for(int j=0; j<adj_list[i].size(); j++)
+		for(size_t j=0; j<adj_list[i].size(); j++)
 			f >> adj_list[i][j];
 	}
-	for(int i=0; i<edge_labels.size(); i++) {
+	for(size_t i=0; i<edge_labels.size(); i++) {
 		edge_labels[i].resize(adj_list[i].size());
-		for(int j=0; j<edge_labels[i].size(); j++)
+		for(size_t j=0; j<edge_labels[i].size(); j++)
 			if(!(f >> edge_labels[i][j]))
 				goto no_labels;
 	}
@@ -147,9 +147,9 @@ no_labels:
 bool DirectedGraph::operator==(const DirectedGraph &b) const {
 	CHECK(adj_list.size() == b.adj_list.size());
 	CHECK(edge_labels.size() == b.edge_labels.size());
-	for(int i=0; i<adj_list.size(); i++) {
+	for(size_t i=0; i<adj_list.size(); i++) {
 		CHECK(adj_list[i].size() == b.adj_list[i].size());
-		for(int j=0; j<adj_list[i].size(); j++) {
+		for(size_t j=0; j<adj_list[i].size(); j++) {
 			CHECK(adj_list[i][j] == b.adj_list[i][j]);
 			if(edge_labels.size() != 0)
 				CHECK(edge_labels[i][j] == b.edge_labels[i][j]);
@@ -175,8 +175,8 @@ unique_ptr<DirectedGraph> DirectedGraph::Reverse() const {
 	auto dg = unique_ptr<DirectedGraph>(new DirectedGraph());
 	dg->adj_list.resize(adj_list.size());
 	dg->edge_labels.resize(adj_list.size());
-	for(int i=0; i<adj_list.size(); i++)
-		for(int j=0; j<adj_list[i].size(); j++) {
+	for(size_t i=0; i<adj_list.size(); i++)
+		for(size_t j=0; j<adj_list[i].size(); j++) {
 			int n = adj_list[i][j];
 			dg->adj_list[n].push_back(i);
 			dg->edge_labels[n].push_back(edge_labels[i][j]);
