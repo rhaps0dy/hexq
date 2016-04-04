@@ -1,7 +1,11 @@
+#ifndef DIRECTED_GRAPH_HPP
+#define DIRECTED_GRAPH_HPP
+
 #include <memory>
 #include <vector>
 #include <string>
 #include <utility>
+#include <set>
 
 using namespace std;
 
@@ -76,3 +80,5 @@ struct DirectedGraph {
 	 */
 	bool operator==(const DirectedGraph &b) const;
 };
+
+#endif // DIRECTED_GRAPH_HPP

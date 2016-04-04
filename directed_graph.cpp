@@ -1,11 +1,6 @@
-#include <utility>
-#include <vector>
-#include <set>
-#include <string>
 #include <fstream>
 #include <sstream>
 #include <iostream>
-#include <memory>
 
 #include "explained_assert.hpp"
 #include "directed_graph.hpp"
