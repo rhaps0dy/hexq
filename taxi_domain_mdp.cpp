@@ -18,13 +18,13 @@ Reward TaxiDomainMdp::TakeAction(Action action) {
 			taxi_pos += 5;
 		return -1;
 	case 2: // east
-		if(taxi_pos % 5 != 4 &&
+		if(taxi_pos % 5 != 4 && taxi_pos != 1 && taxi_pos != 2 &&
 		   taxi_pos != 6 && taxi_pos != 7 && taxi_pos != 15 &&
 		   taxi_pos != 17 && taxi_pos != 20 && taxi_pos != 22)
 			taxi_pos += 1;
 		return -1;
 	case 3: // west
-		if(taxi_pos % 5 != 0 &&
+		if(taxi_pos % 5 != 0 && taxi_pos != 2 && taxi_pos != 3 &&
 		   taxi_pos != 7 && taxi_pos != 8 && taxi_pos != 16 &&
 		   taxi_pos != 18 && taxi_pos != 21 && taxi_pos != 23)
 			taxi_pos -= 1;
