@@ -4,9 +4,12 @@
 #include <ctime>
 #include <utility>
 #include <vector>
+#include <iostream>
+#include <memory>
 
 #include "markov_decision_process.hpp"
 #include "explained_assert.hpp"
+#include "directed_graph.hpp"
 
 typedef State Region;
 
@@ -73,8 +76,8 @@ private:
 	 */
 	std::vector<std::vector<Action> > actions_available_;
 
-	/// Whether the MDP has terminated
-	bool terminated_;
+	/// Not used outside of DirectedGraph::BuildRegionsExits , but nice to save
+	std::unique_ptr<DirectedGraph> dag_;
 
 	static constexpr double EPSILON = 0.1;
 	static constexpr double ALPHA = 0.05;
@@ -98,7 +101,7 @@ public:
 	HexqLevel(int variable, HexqLevelBase *prev,
 			  MarkovDecisionProcess *mdp) :
 			  variable_(variable), n_env_states_(mdp->n_var_states(variable)),
-			  mdp_(mdp), prev_lvl_(prev), terminated_(false) {}
+			  mdp_(mdp), prev_lvl_(prev) {}
 
 	/// Build this level's states, actions, regions and exits model.
 	/**
@@ -118,12 +121,17 @@ public:
 	State n_states() const { return n_regions_; }
 	State state() const { return region_assignment_[internal_state_()]; }
 	void Reset() { prev_lvl_->Reset(); }
-	bool terminated() { return terminated_; }
+	bool terminated() const { return mdp_->terminated(); }
 
 	/// Takes the given exit from the level. Learns using SARSA
 	Reward TakeAction(Action exit);
 	/// Select an action with epsilon-greedy policy based on the passed exit's Q
 	Action ChooseAction(Action exit, State s) const ;
+
+	/// Outputs the HexqLevel to a stream
+	friend std::ostream &operator<<(std::ostream &os, HexqLevel &h);
+	/// Reads the HexqLevel from a stream
+	friend std::istream &operator>>(std::istream &is, HexqLevel &h);
 };
 
 

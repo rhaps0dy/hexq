@@ -5,6 +5,7 @@
 #include <utility>
 #include <random>
 #include <limits>
+#include <iostream>
 
 using namespace std;
 
@@ -33,14 +34,14 @@ void HexqLevel::BuildRegionsExits(time_t exploration_time) {
 		static State cur_s = internal_state_();
 
 		uniform_int_distribution<Action> choose_exit(0,
-			prev_lvl_->n_actions(prev_lvl_->state()));
+			prev_lvl_->n_actions(prev_lvl_->state())-1);
 		Action e = choose_exit(generator);
 		prev_lvl_->TakeAction(e);
 		State next_s = internal_state_();
 		mdp_->FillStateBuffer(next_s_buf);
-		Region &trs = transitions[sa_from_s_a(cur_s, e)];
+		StateAction i = sa_from_s_a(cur_s, e);
 
-		if((trs == next_s || trs == n_internal_states_) &&
+		if((transitions[i] == next_s || transitions[i] == n_internal_states_) &&
 		   !mdp_->HasVarHierarchicalChanged(variable_, cur_s_buf, next_s_buf)) {
 			/* Assumption numbers from Definition 1, Hengst 2002. This
 			 * branch means:
@@ -50,15 +51,22 @@ void HexqLevel::BuildRegionsExits(time_t exploration_time) {
 			 *
 			 * (2) No variables above this level changed value.
 			 */
-			trs = next_s;
+			transitions[i] = next_s;
 		} else {
-			trs = NON_DET;
+			transitions[i] = NON_DET;
 		}
 		swap(cur_s_buf, next_s_buf);
 		cur_s = next_s;
 	}
 	delete cur_s_buf;
 	delete next_s_buf;
+
+	for(State s=0; s<n_internal_states_; s++) {
+		for(Action a=0; a<max_actions_state_; a++) {
+			cout << ' ' << transitions[sa_from_s_a(s, a)];
+		}
+		cout << endl;
+	}
 
 	DirectedGraph g;
 	g.adj_list.clear();
@@ -69,8 +77,10 @@ void HexqLevel::BuildRegionsExits(time_t exploration_time) {
 	}
 
 	n_regions_ = g.StronglyConnectedComponents(region_assignment_);
-	unique_ptr<DirectedGraph> dag =
-		g.MergeByAssignment(region_assignment_, n_regions_);
+	for(size_t i=0; i<region_assignment_.size(); i++)
+		cout << ' '  << i;
+	cout << endl;
+	dag_ = g.MergeByAssignment(region_assignment_, n_regions_);
 	exits_.clear();
 	exits_.resize(n_regions_);
 
@@ -86,8 +96,8 @@ void HexqLevel::BuildRegionsExits(time_t exploration_time) {
 	 * to another region, we can merge the two.
 	 */
 	for(Region r=0; r<n_states(); r++) {
-		if(exits_[r].size() == 0 && dag->adj_list[r].size() == 1) {
-			Region r1 = r, r2 = region_assignment_[dag->adj_list[r][0]];
+		if(exits_[r].size() == 0 && dag_->adj_list[r].size() == 1) {
+			Region r1 = r, r2 = region_assignment_[dag_->adj_list[r][0]];
 			if(r2 > r1)
 				swap(r1, r2);
 			MergeRegionsInAssignment(region_assignment_, n_regions_, r1, r2);
@@ -95,16 +105,16 @@ void HexqLevel::BuildRegionsExits(time_t exploration_time) {
 			MergeVectors(exits_[r1], exits_[r1], exits_[r2]);
 			exits_[r2] = exits_[n_regions_];
 			exits_.resize(n_regions_);
-			MergeVectors(dag->adj_list[r1], dag->adj_list[r1], dag->adj_list[r2]);
-			dag->adj_list[r2] = dag->adj_list[n_regions_];
-			dag->adj_list.resize(n_regions_);
+			MergeVectors(dag_->adj_list[r1], dag_->adj_list[r1], dag_->adj_list[r2]);
+			dag_->adj_list[r2] = dag_->adj_list[n_regions_];
+			dag_->adj_list.resize(n_regions_);
 			//reset loop
 			r = 0;
 		}
 	}
 
 	g.SaveDot("initial_" + to_string(variable_) + ".dot");
-	dag->SaveDot("dag_" + to_string(variable_) + ".dot");
+	dag_->SaveDot("dag_" + to_string(variable_) + ".dot");
 
 	// Recalculate exits_ now that we know both the non-deterministic
 	// state-actions and the state-actions that transition between regions
@@ -158,7 +168,7 @@ Action HexqLevel::ChooseAction(Action exit, State s) const {
 	ASSERT(n_actions > 0, "Should not call ChooseAction when we have zero actions");
 	if(exp_vs_exp(generator) < EPSILON) {
 		// exploration
-		uniform_int_distribution<Action> choose_exit(0, n_actions);
+		uniform_int_distribution<Action> choose_exit(0, n_actions-1);
 		return actions_available_[s][choose_exit(generator)];
 	}
 	// exploitation
@@ -174,4 +184,28 @@ Action HexqLevel::ChooseAction(Action exit, State s) const {
 		}
 	}
 	return chosen_a;
+}
+
+std::ostream &operator<<(std::ostream &os, HexqLevel &h) {
+	os << h.n_internal_states_ << endl;
+	os << h.region_assignment_ << endl;
+	os << h.n_regions_ << endl;
+	os << h.max_actions_state_ << endl;
+	os << h.exits_ << endl;
+	os << h.exit_Q_ << endl;
+	os << h.actions_available_ << endl;
+	os << *h.dag_ << endl;
+	return os;
+}
+
+std::istream &operator>>(std::istream &is, HexqLevel &h) {
+	is >> h.n_internal_states_;
+	is >> h.region_assignment_;
+	is >> h.n_regions_;
+	is >> h.max_actions_state_;
+	is >> h.exits_;
+	is >> h.exit_Q_;
+	is >> h.actions_available_;
+	is >> *h.dag_;
+	return is;
 }

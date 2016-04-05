@@ -6,11 +6,10 @@
 #include <string>
 #include <utility>
 #include <set>
+#include "explained_assert.hpp"
 
-using namespace std;
-
-typedef vector<int> Assignment;
-typedef vector<vector<int> > AdjacencyList;
+typedef std::vector<int> Assignment;
+typedef std::vector<std::vector<int> > AdjacencyList;
 
 /**
  * \brief Merges two vectors into one and sorts their elements. You may
@@ -48,17 +47,17 @@ struct DirectedGraph {
 	 * graph has no labels. Otherwise it should have the same dimensions as
 	 * DirectedGraph::adj_list
 	 */
-	vector<vector<string> > edge_labels;
+	std::vector<std::vector<std::string> > edge_labels;
 
 	/// Tarjan's algorithm for SCC, complexity |V| + |E|
 	int StronglyConnectedComponents(Assignment &assignment) const;
 
 	// edge labels and parallel edges are completely erased when merging an assignment
-	unique_ptr<DirectedGraph> MergeByAssignment(const Assignment &assignment,
+	std::unique_ptr<DirectedGraph> MergeByAssignment(const Assignment &assignment,
 		int n_components) const;
 
 	/// Creates a graph with all the edge directions reversed
-	unique_ptr<DirectedGraph> Reverse() const;
+	std::unique_ptr<DirectedGraph> Reverse() const;
 
 	/// Saves a .dot file with the graph's data.
 	/** This .dot file can be then be
@@ -68,11 +67,11 @@ struct DirectedGraph {
 	 * neato -Tpdf file.dot > image.pdf
 	 * \endcode
 	 */
-	void SaveDot(string filename) const;
-	/// Saves a file that can be read back with DirectedGraph::Load
-	void Save(string filename) const;
-	/// Loads a file that was written with DirectedGraph::Save
-	void Load(string filename);
+	void SaveDot(std::string filename) const;
+	/// Outputs the DirectedGraph to a stream
+	friend std::ostream &operator<<(std::ostream &os, DirectedGraph &dg);
+	/// Reads the DirectedGraph from a stream
+	friend std::istream &operator>>(std::istream &is, DirectedGraph &dg);
 	/**
 	 * Two DirectedGraphs are equal when both their DirectedGraph::adj_list and
 	 * DirectedGraph::edge_labels are

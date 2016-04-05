@@ -28,7 +28,7 @@ struct HexqLevelBase {
 	/// Take the given action, modifying the state of the MDP
 	virtual Reward TakeAction(Action a) = 0;
 	/// Whether the MDP has terminated and a new episode should be started
-	virtual bool terminated() = 0;
+	virtual bool terminated() const = 0;
 };
 
 /// Interface for an MDP with several discrete variables
@@ -40,13 +40,16 @@ protected:
 	std::vector<int> freq_variable_;
 	/// Given a frequency ranking give its variable
 	std::vector<int> variable_freq_;
+	virtual State n_var_states_(int var) const = 0;
 public:
 	/// Number of variables for the MDP state
 	size_t n_variables() const { return variables_.size(); }
-	/// Current state of a given variable
-	State var_state(int var) const { return variables_[var]; }
+	/// Current state of a given variable.
+	/// Returns 1 for variable -1, to use for the first level of the HEXQ hierarchy
+	State var_state(int var) const { return var == -1 ? 0 : variables_[var]; }
 	/// Number of states for a given variable
-	virtual State n_var_states(int var) const = 0;
+	/// Returns 1 for variable -1, to use for the first level of the HEXQ hierarchy
+	State n_var_states(int var) const { return var == -1 ? 1 : n_var_states_(var); }
 	State *StateBuffer() const { return new State[n_variables()]; }
 	// Copy state to the allocated buffer
 	void FillStateBuffer(State *sb) const {
@@ -57,7 +60,9 @@ public:
 	 * sb?
 	 */
 	bool HasVarHierarchicalChanged(int var, State *sa, State *sb) const {
-		int f = freq_variable_[var];
+		// When the MDP level is the first one it has value -1
+		if(var == -1) var = 0;
+		int f = freq_variable_[var] + 1;
 		for(; f<n_variables(); f++) {
 			if(sa[variable_freq_[f]] != sb[variable_freq_[f]])
 				return true;

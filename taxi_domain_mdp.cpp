@@ -50,9 +50,9 @@ typedef uniform_int_distribution<int> Rand;
 void TaxiDomainMdp::Reset() {
 	static default_random_engine generator;
 	static Rand r[3] = {
-		Rand(0, n_var_states(0)),
-		Rand(0, n_var_states(1)),
-		Rand(0, n_var_states(2))
+		Rand(0, n_var_states(0)-1),
+		Rand(0, n_var_states(1)-1),
+		Rand(0, n_var_states(2)-1)
 	};
 	for(int i=0; i<n_variables(); i++)
 		variables_[i] = r[i](generator);

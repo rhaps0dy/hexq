@@ -64,23 +64,6 @@ unique_ptr<DirectedGraph> DirectedGraph::MergeByAssignment(
 	return move(g);
 }
 
-/*void DirectedGraph::merge_nodes(int n1, int n2) {
-	for(int i=0; i<adj_list[n2].size(); i++) {
-		adj_list[n1].push_back(adj_list[n2][i]);
-		edge_labels[n1].push_back(edge_labels[n2][i]);
-	}
-	int last_node = adj_list.size()-1;
-	adj_list[n2] = adj_list[last_node];
-	edge_labels[n2] = edge_labels[last_node];
-	for(int i=0; i<adj_list.size(); i++)
-		for(int j=0; j<adj_list.size(); j++) {
-			if(adj_list[i][j] == n2)
-				adj_list[i][j] = n1;
-			else if(adj_list[i][j] == last_node)
-				adj_list[i][j] = n2;
-		}
-		}*/
-
 void DirectedGraph::SaveDot(const string filename) const {
 	ofstream f(filename);
 	f << "strict digraph {";
@@ -97,45 +80,22 @@ void DirectedGraph::SaveDot(const string filename) const {
 	f << "\n}\n";
 }
 
-void DirectedGraph::Save(const string filename) const {
-	ofstream f(filename);
-	f << adj_list.size() << endl;
-	for(size_t i=0; i<adj_list.size(); i++) {
-		f << adj_list[i].size();
-		for(size_t j=0; j<adj_list[i].size(); j++)
-			f << ' ' << adj_list[i][j];
-		f << endl;
-	}
-	for(size_t i=0; i<edge_labels.size(); i++) {
-		for(size_t j=0; j<edge_labels[i].size(); j++)
-			f << ' ' << edge_labels[i][j];
-		f << endl;
-	}
+std::ostream &operator<<(std::ostream &os, DirectedGraph &dg) {
+	bool t = (dg.edge_labels.size() != 0);
+	os << t << ' ';
+	os << dg.adj_list;
+	if(t)
+		os << dg.edge_labels;
+	return os;
 }
 
-void DirectedGraph::Load(const string filename) {
-	adj_list.clear();
-	edge_labels.clear();
-	ifstream f(filename);
-	int n;
-	f >> n;
-	adj_list.resize(n);
-	edge_labels.resize(n);
-	for(size_t i=0; i<adj_list.size(); i++) {
-		f >> n;
-		adj_list[i].resize(n);
-		for(size_t j=0; j<adj_list[i].size(); j++)
-			f >> adj_list[i][j];
-	}
-	for(size_t i=0; i<edge_labels.size(); i++) {
-		edge_labels[i].resize(adj_list[i].size());
-		for(size_t j=0; j<edge_labels[i].size(); j++)
-			if(!(f >> edge_labels[i][j]))
-				goto no_labels;
-	}
-	return;
-no_labels:
-	edge_labels.clear();
+std::istream &operator>>(std::istream &is, DirectedGraph &dg) {
+	bool t;
+	is >> t;
+	is >> dg.adj_list;
+	if(t)
+		is >> dg.edge_labels;
+	return is;
 }
 
 #define CHECK(a) if(!(a)) return false
@@ -211,9 +171,11 @@ int main() {
 	a[9].push_back(6);
 	b[9].push_back("xa");
 
-	dg.Save("/tmp/test.graph");
+	ofstream tfile("/tmp/test.graph");
+	tfile << dg;
 	DirectedGraph dgg;
-	dgg.Load("/tmp/test.graph");
+	ifstream tfile2("/tmp/test.graph");
+	tfile2 >> dgg;
 	ASSERT(dg == dgg, "Save and load graph");
 	dg.SaveDot("/tmp/graph.dot");
 

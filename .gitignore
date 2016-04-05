@@ -37,3 +37,16 @@ latex
 *.exe
 *.out
 *.app
+
+#CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+install_manifest.txt
+
+# Various output files
+a.pdf
+dag_0.pdf
+hexq
+initial_0.pdf
+test.cpp
