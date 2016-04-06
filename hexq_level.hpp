@@ -42,7 +42,7 @@ private:
 			+ prev_lvl_->state();
 	}
 	/// What region each internal state pertains to
-	std::vector<Region> region_assignment_;
+	Assignment region_assignment_;
 	/** \brief Number of regions, i.e., different consecutive numbers in
 	 * HexqLevel::region_assignment_
 	 */

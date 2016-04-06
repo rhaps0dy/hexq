@@ -7,41 +7,80 @@
 
 using namespace std;
 
-void Tarjan(unsigned n, int &index, int &n_connected_components, vector<bool> &I,
-			Assignment &L, vector<int> &S, vector<int> &D,
-			const vector<vector<int> > &V) {
-    D[n] = L[n] = index++;
-    S.push_back(n);
-    I[n] = true;
-    for (size_t i = 0; i < V[n].size(); ++i) {
-		if (D[V[n][i]] < 0) {
-			Tarjan(V[n][i], index, n_connected_components, I, L, S, D, V);
-			L[n] = min(L[n], L[V[n][i]]);
-		}
-		else if (I[V[n][i]])
-			L[n] = min(L[n], D[V[n][i]]);
-    }
-    if (D[n] == L[n]) {
-		n_connected_components++;
-		// todos los nodos eliminados de S pertenecen al mismo scc
-		while (S[S.size() - 1] != n) {
-			I[S.back()] = false;
-			S.pop_back();
-		}
-		I[n] = false;
-		S.pop_back();
+/// Struct for running Tarjan's algorithm. Credits to
+/// https://github.com/bwesterb/py-tarjan for inspiration
+struct TarjanContext {
+	const AdjacencyList &graph;
+	vector<int> stack;
+	vector<bool> stack_set;
+	vector<int> index;
+	vector<int> lowlink;
+	Assignment &assignment;
+	vector<pair<pair<vector<const int>::iterator, bool>, pair<int, int> > > recursion_stack;
+	int n_indexed, n_scc;
+
+	TarjanContext(const AdjacencyList &adj_list, Assignment &assignment) :
+		graph(adj_list), stack(), stack_set(graph.size(), false),
+		index(graph.size(), -1), lowlink(graph.size()), assignment(assignment),
+		recursion_stack(), n_indexed(0), n_scc(0) {
+		assignment.resize(graph.size());
 	}
-}
+
+	void calculate() {
+		for(int v=0; v<graph.size(); v++) {
+			if(index[v] == -1)
+				TarjanHead(v);
+
+			while(recursion_stack.size()) {
+				vector<const int>::iterator it =
+					recursion_stack.back().first.first;
+				const bool inside = recursion_stack.back().first.second;
+				const int v = recursion_stack.back().second.first;
+				const int w = recursion_stack.back().second.second;
+				recursion_stack.pop_back();
+				if(inside)
+					lowlink[v] = min(lowlink[w], lowlink[v]);
+				TarjanBody(it, v);
+			}
+		}
+	}
+
+private:
+	void TarjanHead(int v) {
+		lowlink[v] = index[v] = n_indexed++;
+		stack.push_back(v);
+		stack_set[v] = true;
+		recursion_stack.push_back(
+			make_pair(make_pair(graph[v].begin(), false), make_pair(v, -1)));
+	}
+	void TarjanBody(vector<const int>::iterator w, int v) {
+		for(; w!=graph[v].end(); w++) {
+			if(index[*w] == -1) {
+				recursion_stack.push_back(
+					make_pair(make_pair(w, true), make_pair(v, *w)));
+				TarjanHead(*w);
+				return;
+			}
+			if(stack_set[*w])
+				lowlink[v] = min(lowlink[v], index[*w]);
+		}
+		if(lowlink[v] == index[v]) {
+			int w;
+			do {
+				w = stack.back();
+				stack.pop_back();
+				assignment[w] = n_scc;
+				stack_set[w] = false;
+			} while(w != v);
+			n_scc++;
+		}
+	}
+};
 
 int DirectedGraph::StronglyConnectedComponents(Assignment &assignment) const {
-	int index=0, n_scc=0;
-	vector<bool> I(adj_list.size(), false);
-	assignment = Assignment(adj_list.size());
-	vector<int> S, D(adj_list.size(), -1);
-    for (size_t n = 0; n < adj_list.size(); ++n)
-		if (D[n] < 0)
-			Tarjan(n, index, n_scc, I, assignment, S, D, adj_list);
-	return n_scc;
+	TarjanContext tc(adj_list, assignment);
+	tc.calculate();
+	return tc.n_scc;
 }
 
 unique_ptr<DirectedGraph> DirectedGraph::MergeByAssignment(

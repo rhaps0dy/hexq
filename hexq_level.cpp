@@ -61,13 +61,6 @@ void HexqLevel::BuildRegionsExits(time_t exploration_time) {
 	delete cur_s_buf;
 	delete next_s_buf;
 
-	for(State s=0; s<n_internal_states_; s++) {
-		for(Action a=0; a<max_actions_state_; a++) {
-			cout << ' ' << transitions[sa_from_s_a(s, a)];
-		}
-		cout << endl;
-	}
-
 	DirectedGraph g;
 	g.adj_list.clear();
 	g.adj_list.resize(n_internal_states_);
@@ -77,9 +70,6 @@ void HexqLevel::BuildRegionsExits(time_t exploration_time) {
 	}
 
 	n_regions_ = g.StronglyConnectedComponents(region_assignment_);
-	for(size_t i=0; i<region_assignment_.size(); i++)
-		cout << ' '  << i;
-	cout << endl;
 	dag_ = g.MergeByAssignment(region_assignment_, n_regions_);
 	exits_.clear();
 	exits_.resize(n_regions_);

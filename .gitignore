@@ -36,6 +36,7 @@ latex
 # Executables
 *.exe
 *.out
+*.out.dSYM
 *.app
 
 #CMake
