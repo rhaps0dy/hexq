@@ -16,7 +16,8 @@ struct TarjanContext {
 	vector<int> index;
 	vector<int> lowlink;
 	Assignment &assignment;
-	vector<pair<pair<vector<const int>::iterator, bool>, pair<int, int> > > recursion_stack;
+	vector<pair<pair<vector<int>::const_iterator, bool>,
+				pair<int, int> > > recursion_stack;
 	int n_indexed, n_scc;
 
 	TarjanContext(const AdjacencyList &adj_list, Assignment &assignment) :
@@ -32,8 +33,7 @@ struct TarjanContext {
 				TarjanHead(v);
 
 			while(recursion_stack.size()) {
-				vector<const int>::iterator it =
-					recursion_stack.back().first.first;
+				const auto it = recursion_stack.back().first.first;
 				const bool inside = recursion_stack.back().first.second;
 				const int v = recursion_stack.back().second.first;
 				const int w = recursion_stack.back().second.second;
@@ -53,7 +53,7 @@ private:
 		recursion_stack.push_back(
 			make_pair(make_pair(graph[v].begin(), false), make_pair(v, -1)));
 	}
-	void TarjanBody(vector<const int>::iterator w, int v) {
+	void TarjanBody(vector<int>::const_iterator w, int v) {
 		for(; w!=graph[v].end(); w++) {
 			if(index[*w] == -1) {
 				recursion_stack.push_back(

@@ -2,6 +2,7 @@
 #define MARKOV_DECISION_PROCESS_HPP
 
 #include <vector>
+#include <cstddef>
 
 /*
  * These data types are not opaque. The interface of the MAXQLevel
