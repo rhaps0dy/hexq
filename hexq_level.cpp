@@ -4,8 +4,8 @@
 #include <memory>
 #include <utility>
 #include <random>
-#include <limits>
 #include <iostream>
+#include "softmax_random_choice.hpp"
 
 using namespace std;
 
@@ -23,6 +23,11 @@ void HexqLevel::BuildRegionsExits(time_t exploration_time) {
 	// If the value is n_internal_states_, we have not taken that action in that
 	// state.
 	vector<Region> transitions(n_state_action(), n_internal_states_);
+	vector<vector<double> > times_taken(prev_lvl_->n_states());
+	for(size_t i=0; i<times_taken.size(); i++) {
+		times_taken[i].resize(prev_lvl_->n_actions(i));
+		fill(times_taken[i].begin(), times_taken[i].end(), 0.0);
+	}
 
 	prev_lvl_->Reset();
 	// loop until we spend the exploration_time
@@ -33,9 +38,11 @@ void HexqLevel::BuildRegionsExits(time_t exploration_time) {
 	while(time(NULL) - start_time <= exploration_time) {
 		static State cur_s = internal_state_();
 
-		uniform_int_distribution<Action> choose_exit(0,
-			prev_lvl_->n_actions(prev_lvl_->state())-1);
+		State prev_lvl_s = prev_lvl_->state();
+		SoftmaxRandomChoice<default_random_engine ,Action, double>
+			choose_exit(times_taken[prev_lvl_s]);
 		Action e = choose_exit(generator);
+		times_taken[prev_lvl_s][e] += 1.0;
 		prev_lvl_->TakeAction(e);
 		State next_s = internal_state_();
 		mdp_->FillStateBuffer(next_s_buf);
@@ -131,22 +138,32 @@ void HexqLevel::BuildRegionsExits(time_t exploration_time) {
 
 	for(Action e=0; e<max_n_exits; e++)
 		exit_Q_[e].resize(n_internal_states_ * max_actions_state_);
+
+	printf("Level %d. There are %d regions\n", variable_, n_regions_);
+	for(Region r=0; r<n_regions_; r++) {
+		printf("Region %d: %lu exits.\n", r, exits_[r].size());
+		for(auto sa=exits_[r].begin(); sa!=exits_[r].end(); sa++)
+			printf("\tState %d, action %d\n", s_from_sa(*sa), a_from_sa(*sa));
+	}
 }
 
 Reward HexqLevel::TakeAction(Action exit) {
 	State s = internal_state_();
-	StateAction target_sa = exits_[region_assignment_[s]][exit];
+	const StateAction target_sa = exits_[region_assignment_[s]][exit];
+	const StateAction target_s = s_from_sa(target_sa);
 	vector<Reward> &Q = exit_Q_[exit];
 
 	// SARSA (with s)
 	StateAction sa = sa_from_s_a(s, ChooseAction(exit, s));
-	while(sa != target_sa) {
+	while(s != target_s) {
 		const Reward r = prev_lvl_->TakeAction(a_from_sa(sa));
 		const State next_s = internal_state_();
 		const Action next_a = ChooseAction(exit, next_s);
 		const StateAction next_sa = sa_from_s_a(next_s, next_a);
+
 		Q[sa] = (1-ALPHA)*Q[sa] + ALPHA*(r + DISCOUNT*Q[next_sa]);
 		sa = next_sa;
+		s = next_s;
 	}
 	// TODO: reward equation
 	return prev_lvl_->TakeAction(a_from_sa(target_sa));
@@ -159,13 +176,16 @@ Action HexqLevel::ChooseAction(Action exit, State s) const {
 	if(exp_vs_exp(generator) < EPSILON) {
 		// exploration
 		uniform_int_distribution<Action> choose_exit(0, n_actions-1);
-		return actions_available_[s][choose_exit(generator)];
+		Action a = actions_available_[s][choose_exit(generator)];
+		if(a > 10000)
+			__builtin_trap();
+		return a;
 	}
 	// exploitation
 	const vector<Reward> &Q = exit_Q_[exit];
-	Action chosen_a;
-	Reward q_max = numeric_limits<Reward>::min();
-	for(Action i=0; i<n_actions; i++) {
+	Action chosen_a = actions_available_[s][0];
+	Reward q_max = Q[sa_from_s_a(s, chosen_a)];
+	for(Action i=1; i<n_actions; i++) {
 		Action a = actions_available_[s][i];
 		Reward q = Q[sa_from_s_a(s, a)];
 		if(q > q_max) {
@@ -173,6 +193,8 @@ Action HexqLevel::ChooseAction(Action exit, State s) const {
 			chosen_a = a;
 		}
 	}
+	if(chosen_a > 10000)
+		__builtin_trap();
 	return chosen_a;
 }
 

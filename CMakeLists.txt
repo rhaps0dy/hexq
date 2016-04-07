@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 
 project(HEXQ)
 
-set(CMAKE_CXX_FLAGS_DEBUG  "-g -O3") 
+set(CMAKE_CXX_FLAGS_DEBUG  "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 add_definitions(-std=c++11)
 
