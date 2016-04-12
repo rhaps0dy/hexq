@@ -103,6 +103,8 @@ void HexqLevel::BuildRegionsExits(time_t exploration_time) {
 	for(Region r=0; r<n_states(); r++) {
 		if(exits_[r].size() == 0 && dag_->adj_list[r].size() == 1) {
 			Region r1 = r, r2 = region_assignment_[dag_->adj_list[r][0]];
+			if(r1 == r2)
+				continue;
 			if(r2 > r1)
 				swap(r1, r2);
 			MergeRegionsInAssignment(region_assignment_, n_regions_, r1, r2);
