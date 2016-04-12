@@ -98,10 +98,9 @@ public:
 	 * \param prev previous HEXQ hierarchy level
 	 * \param mdp MDP of the whole HEXQ stack
 	 */
-	HexqLevel(int variable, HexqLevelBase *prev,
-			  MarkovDecisionProcess *mdp) :
+	HexqLevel(int variable, HexqLevelBase *prev, MarkovDecisionProcess *mdp) :
 			  variable_(variable), n_env_states_(mdp->n_var_states(variable)),
-			  mdp_(mdp), prev_lvl_(prev) {}
+			  mdp_(mdp), prev_lvl_(prev), dag_(new DirectedGraph()) {}
 
 	/// Build this level's states, actions, regions and exits model.
 	/**

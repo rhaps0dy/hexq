@@ -48,6 +48,14 @@ void HexqLevel::BuildRegionsExits(time_t exploration_time) {
 		mdp_->FillStateBuffer(next_s_buf);
 		StateAction i = sa_from_s_a(cur_s, e);
 
+		if(prev_lvl_->terminated()) {
+			prev_lvl_->Reset();
+			transitions[i] = NON_DET;
+			cur_s = internal_state_();
+			mdp_->FillStateBuffer(cur_s_buf);
+			continue;
+		}
+
 		if((transitions[i] == next_s || transitions[i] == n_internal_states_) &&
 		   !mdp_->HasVarHierarchicalChanged(variable_, cur_s_buf, next_s_buf)) {
 			/* Assumption numbers from Definition 1, Hengst 2002. This
