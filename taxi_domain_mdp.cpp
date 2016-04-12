@@ -3,7 +3,7 @@
 
 using namespace std;
 
-constexpr static int pass_to_taxi[] = {-1, 0, 4, 20, 24};
+constexpr static int pass_to_taxi[] = {0, 4, 20, 24, -1};
 Reward TaxiDomainMdp::TakeAction(Action action) {
 	int &taxi_pos = variables_[0];
 	int &pass_pos = variables_[1];
@@ -31,12 +31,12 @@ Reward TaxiDomainMdp::TakeAction(Action action) {
 		return -1;
 	case 4: // pick up
 		if(taxi_pos == pass_to_taxi[pass_pos]) {
-			pass_pos = 0;
+			pass_pos = 4;
 			return -1;
 		}
 		return -10;
 	case 5: // put down
-		if(pass_pos == 0 && taxi_pos == pass_to_taxi[pass_tgt]) {
+		if(pass_pos == 4 && taxi_pos == pass_to_taxi[pass_tgt]) {
 			// mark the episode as ended
 			pass_pos = pass_tgt;
 			return 20;
