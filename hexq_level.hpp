@@ -131,6 +131,12 @@ public:
 	friend std::ostream &operator<<(std::ostream &os, HexqLevel &h);
 	/// Reads the HexqLevel from a stream
 	friend std::istream &operator>>(std::istream &is, HexqLevel &h);
+	/// Reads level from a file, or creates it with built regions if the file
+	/// does not exist
+	void BuildRegionsExitsOrRead(const std::string &fname, time_t time);
+
+	/// Prints regions and exits and outputs dotfiles of several internal graphs
+	void OutputInfo();
 };
 
 

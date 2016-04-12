@@ -5,6 +5,7 @@
 #include <utility>
 #include <random>
 #include <iostream>
+#include <fstream>
 #include "softmax_random_choice.hpp"
 
 using namespace std;
@@ -120,9 +121,6 @@ void HexqLevel::BuildRegionsExits(time_t exploration_time) {
 		}
 	}
 
-	g.SaveDot("initial_" + to_string(variable_) + ".dot");
-	dag_->SaveDot("dag_" + to_string(variable_) + ".dot");
-
 	// Recalculate exits_ now that we know both the non-deterministic
 	// state-actions and the state-actions that transition between regions
 	// Also, make only the non-exits available in each state
@@ -148,13 +146,16 @@ void HexqLevel::BuildRegionsExits(time_t exploration_time) {
 
 	for(Action e=0; e<max_n_exits; e++)
 		exit_Q_[e].resize(n_internal_states_ * max_actions_state_);
+}
 
+void HexqLevel::OutputInfo() {
 	printf("Level %d. There are %d regions\n", variable_, n_regions_);
 	for(Region r=0; r<n_regions_; r++) {
 		printf("Region %d: %lu exits.\n", r, exits_[r].size());
 		for(auto sa=exits_[r].begin(); sa!=exits_[r].end(); sa++)
 			printf("\tState %d, action %d\n", s_from_sa(*sa), a_from_sa(*sa));
 	}
+	dag_->SaveDot("dag_" + to_string(variable_) + ".dot");
 }
 
 Reward HexqLevel::TakeAction(Action exit) {
@@ -230,4 +231,15 @@ std::istream &operator>>(std::istream &is, HexqLevel &h) {
 	is >> h.actions_available_;
 	is >> *h.dag_;
 	return is;
+}
+
+void HexqLevel::BuildRegionsExitsOrRead(const std::string &fname, time_t time) {
+	ifstream i(fname);
+	if(i.is_open()) {
+		i >> *this;
+	} else {
+		BuildRegionsExits(time);
+		ofstream o(fname);
+		o << *this;
+	}
 }
