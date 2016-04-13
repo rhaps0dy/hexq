@@ -54,13 +54,15 @@ public:
 	State *StateBuffer() const { return new State[n_variables()]; }
 	// Copy state to the allocated buffer
 	void FillStateBuffer(State *sb) const {
-		for(int i=0; i<n_variables(); i++)
+		for(size_t i=0; i<n_variables(); i++)
 			sb[i] = variables_[i];
 	}
 	/** Has a variable or the ones less frequent than it changed between sa and
 	 * sb?
 	 */
 	bool HasVarHierarchicalChanged(int var, State *sa, State *sb) const {
+		if(var == n_variables() - 1)
+			return false;
 		// When the MDP level is the first one it has value -1
 		if(var == -1) var = 0;
 		int f = freq_variable_[var] + 1;
@@ -78,6 +80,9 @@ public:
 
 	virtual void Print() const = 0;
 	virtual void PrintBackspace() const = 0;
+
+	int frame_time;
+	MarkovDecisionProcess() : frame_time(0) {}
 };
 
 #endif // MARKOV_DECISION_PROCESS_HPP

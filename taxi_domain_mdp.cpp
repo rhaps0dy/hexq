@@ -1,5 +1,6 @@
 #include "taxi_domain_mdp.hpp"
 #include <random>
+#include <unistd.h>
 
 using namespace std;
 
@@ -8,6 +9,11 @@ Reward TaxiDomainMdp::TakeAction(Action action) {
 	int &taxi_pos = variables_[0];
 	int &pass_pos = variables_[1];
 	int &pass_tgt = variables_[2];
+	if(frame_time != 0) {
+		Print();
+		PrintBackspace();
+		usleep(frame_time);
+	}
 	switch(action) {
 	case 0: // north
 		if(taxi_pos >= 5)
