@@ -79,9 +79,9 @@ private:
 	/// Not used outside of DirectedGraph::BuildRegionsExits , but nice to save
 	std::unique_ptr<DirectedGraph> dag_;
 
-	static constexpr double EPSILON = 0.1;
+	static constexpr double EPSILON = 0.01;
 	static constexpr double ALPHA = 0.05;
-	static constexpr double DISCOUNT = 0.05;
+	static constexpr double DISCOUNT = 0.99;
 
 	/// Return state from state-action pair
 	State s_from_sa(StateAction sa) const { return sa / max_actions_state_; }

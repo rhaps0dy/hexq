@@ -28,3 +28,19 @@ int main() {
 	lvl_2.OutputInfo();
 	return 0;
 }
+
+int sarsa_test_main() {
+	TaxiDomainMdp mdp;
+	mdp.Reset();
+	HexqLevel lvl_0(-1, &mdp, &mdp);
+	lvl_0.BuildRegionsExitsOrRead("level_0.save", TIME);
+	for(int i=0; i<100000; i++) {
+		mdp.Reset();
+		lvl_0.TakeAction(0);
+	}
+	printf("\n\n\n\n\n\n\n");
+	printf("\n\n\n\n\n\n\n");
+	ofstream o("level_0.save");
+	o << lvl_0;
+	return 0;
+}

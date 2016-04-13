@@ -7,6 +7,7 @@
 #include <iostream>
 #include <fstream>
 #include "softmax_random_choice.hpp"
+// #include <unistd.h>
 
 using namespace std;
 
@@ -159,25 +160,42 @@ void HexqLevel::OutputInfo() {
 }
 
 Reward HexqLevel::TakeAction(Action exit) {
-	State s = internal_state_();
-	const StateAction target_sa = exits_[region_assignment_[s]][exit];
-	const StateAction target_s = s_from_sa(target_sa);
+	const State init_s = internal_state_();
+	const StateAction target_sa = exits_[region_assignment_[init_s]][exit];
+	const State target_s = s_from_sa(target_sa);
+	const Action target_a = a_from_sa(target_sa);
 	vector<Reward> &Q = exit_Q_[exit];
+	Q[target_sa] = 50;
+
+#define CHOOSE_ACTION(state) \
+	((state)==target_s ? target_a : ChooseAction(exit, (state)))
 
 	// SARSA (with s)
-	StateAction sa = sa_from_s_a(s, ChooseAction(exit, s));
-	while(s != target_s) {
-		const Reward r = prev_lvl_->TakeAction(a_from_sa(sa));
+	Action a = CHOOSE_ACTION(init_s);
+	StateAction sa = sa_from_s_a(init_s, a);
+	while(sa != target_sa) {
+		const Reward r = prev_lvl_->TakeAction(a);
 		const State next_s = internal_state_();
-		const Action next_a = ChooseAction(exit, next_s);
+		const Action next_a = CHOOSE_ACTION(next_s);
 		const StateAction next_sa = sa_from_s_a(next_s, next_a);
-
-		Q[sa] = (1-ALPHA)*Q[sa] + ALPHA*(r + DISCOUNT*Q[next_sa]);
+		Q[sa] += ALPHA*(r + DISCOUNT*Q[next_sa] - Q[sa]);
 		sa = next_sa;
-		s = next_s;
+		a = next_a;
+
+/*		printf("Take action %d\n", exit);
+		mdp_->Print();
+		for(int j=0; j<6; j++) {
+			for(int i=0; i<25; i++)
+				printf(" %2.2lf", Q[i*6+j]);
+			putchar('\n');
+		}
+		mdp_->PrintBackspace();
+		mdp_->PrintBackspace();
+		usleep(200000);*/
 	}
 	// TODO: reward equation
-	return prev_lvl_->TakeAction(a_from_sa(target_sa));
+	assert(a == target_a);
+	return prev_lvl_->TakeAction(a);
 }
 
 Action HexqLevel::ChooseAction(Action exit, State s) const {
