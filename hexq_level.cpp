@@ -7,7 +7,6 @@
 #include <iostream>
 #include <fstream>
 #include "softmax_random_choice.hpp"
-// #include <unistd.h>
 
 using namespace std;
 
@@ -86,57 +85,64 @@ void HexqLevel::BuildRegionsExits(time_t exploration_time) {
 			g.adj_list[s_from_sa(i)].push_back(transitions[i]);
 	}
 
+	vector<State> merge_with(n_internal_states_, n_internal_states_);
+	for(State s=0; s<g.adj_list.size(); s++) {
+		if(g.adj_list[s].size() == 0) {
+			for(Action a=0; a<max_actions_state_; a++)
+				if(transitions[sa_from_s_a(s, a)] != n_internal_states_)
+					goto next;
+			// The node has not been visited, because it has no outgoing
+			// transitions nor exits. It is likely unreachable (how likely
+			// depends on the exploring time), and we can safely put it in
+			// whatever region node 0 ends up.
+			merge_with[s] = 0;
+		} else {
+			const State s_tgt = g.adj_list[s][0];
+			if(s == s_tgt)
+				goto next;
+			for(Action a=1; a<g.adj_list[s].size(); a++)
+				if(g.adj_list[s][a]!=s_tgt)
+					goto next;
+			// This state can only go to one state, and that state is not
+			// itself. We can merge the two.
+			merge_with[s] = s_tgt;
+		}
+	next: ;
+	}
+
 	n_regions_ = g.StronglyConnectedComponents(region_assignment_);
+	vector<Region> region_offset(n_regions_, 0);
+	for(State s=0; s<n_internal_states_; s++)
+		if(merge_with[s] != n_internal_states_) {
+			// merge_with only contains nodes which are the only node in
+			// their strongly connected component
+			region_offset[region_assignment_[s]] = 1;
+			region_assignment_[s] = region_assignment_[merge_with[s]];
+		}
+	for(Region r=1; r<n_regions_; r++)
+		region_offset[r] += region_offset[r-1];
+	for(State s=0; s<n_internal_states_; s++)
+		region_assignment_[s] -= region_offset[region_assignment_[s]];
+	n_regions_ -= region_offset.back();
+
 	dag_ = g.MergeByAssignment(region_assignment_, n_regions_);
 	exits_.clear();
 	exits_.resize(n_regions_);
 
-	// record the exits for each region
-	for(StateAction i=0; i<transitions.size(); i++) {
-		if(transitions[i] == NON_DET || transitions[i] == n_internal_states_)
-			exits_[region_assignment_[s_from_sa(i)]].push_back(i);
-	}
-
-	/* Merge some SCC into bigger regions. We only require that from any
-	 * state in the region we can reach any of the exits of the region.
-	 * Therefore, If a region has no exits and has only one outgoing edge,
-	 * to another region, we can merge the two.
-	 */
-	for(Region r=0; r<n_states(); r++) {
-		if(exits_[r].size() == 0 && dag_->adj_list[r].size() == 1) {
-			Region r1 = r, r2 = region_assignment_[dag_->adj_list[r][0]];
-			if(r1 == r2)
-				continue;
-			if(r2 > r1)
-				swap(r1, r2);
-			MergeRegionsInAssignment(region_assignment_, n_regions_, r1, r2);
-			// n_regions_ is decreased by one
-			MergeVectors(exits_[r1], exits_[r1], exits_[r2]);
-			exits_[r2] = exits_[n_regions_];
-			exits_.resize(n_regions_);
-			MergeVectors(dag_->adj_list[r1], dag_->adj_list[r1], dag_->adj_list[r2]);
-			dag_->adj_list[r2] = dag_->adj_list[n_regions_];
-			dag_->adj_list.resize(n_regions_);
-			//reset loop
-			r = 0;
-		}
-	}
-
-	// Recalculate exits_ now that we know both the non-deterministic
+	// Calculate exits_ now that we know both the non-deterministic
 	// state-actions and the state-actions that transition between regions
 	// Also, make only the non-exits available in each state
-	for(Region i=0; i<n_regions_; i++)
-		exits_[i].clear();
 	actions_available_.clear();
 	actions_available_.resize(n_internal_states_);
 	for(StateAction sa=0; sa<transitions.size(); sa++)
-		if(transitions[sa] != NON_DET && transitions[sa] != n_internal_states_ &&
+		if(transitions[sa] == n_internal_states_) {
+			continue;
+		} else if(transitions[sa] != NON_DET &&
 		   region_assignment_[transitions[sa]] == region_assignment_[s_from_sa(sa)]) {
 			actions_available_[s_from_sa(sa)].push_back(a_from_sa(sa));
 		} else {
 			exits_[region_assignment_[s_from_sa(sa)]].push_back(sa);
 		}
-
 
 	// Initialize the Q-learning values
 	size_t max_n_exits = 0;
@@ -181,17 +187,6 @@ Reward HexqLevel::TakeAction(Action exit) {
 		Q[sa] += ALPHA*(r + DISCOUNT*Q[next_sa] - Q[sa]);
 		sa = next_sa;
 		a = next_a;
-
-/*		printf("Take action %d\n", exit);
-		mdp_->Print();
-		for(int j=0; j<6; j++) {
-			for(int i=0; i<25; i++)
-				printf(" %2.2lf", Q[i*6+j]);
-			putchar('\n');
-		}
-		mdp_->PrintBackspace();
-		mdp_->PrintBackspace();
-		usleep(200000);*/
 	}
 	// TODO: reward equation
 	assert(a == target_a);

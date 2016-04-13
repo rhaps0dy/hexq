@@ -43,9 +43,11 @@ struct DirectedGraph {
 	/// Adjacency list of the graph
 	AdjacencyList adj_list;
 	/**
-	 * DirectedGraph::edge_labels may be an empty vector. In that case, the
-	 * graph has no labels. Otherwise it should have the same dimensions as
-	 * DirectedGraph::adj_list
+	 * This may be an empty vector. In that case, the graph has no labels.
+	 * Otherwise it should have the same dimensions as DirectedGraph::adj_list
+	 *
+	 * This attribute can be saved and read with the stream operators and
+	 * DirectedGraph::SaveDot.
 	 */
 	std::vector<std::vector<std::string> > edge_labels;
 
