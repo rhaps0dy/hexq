@@ -70,3 +70,38 @@ TaxiDomainMdp::TaxiDomainMdp() : MarkovDecisionProcess(3) {
 	freq_variable_[1] = 1;
 	freq_variable_[2] = 2;
 }
+
+void TaxiDomainMdp::Print() const {
+	puts("╔═════╦══╦═════╗");
+	for(int i=0; i<5; i++) {
+		for(int j=0; j<5; j++) {
+			int p = i*5+j;
+			if(p%5==0||p==2||p==3||p==7||p==8||p==16||p==18||p==21||p==23)
+				printf("║");
+			else
+				printf(" ");
+			PrintPosition(p);
+		}
+		printf("║\n");
+	}
+	puts("╚══╩═════╩═════╝");
+}
+
+void TaxiDomainMdp::PrintPosition(int p) const {
+	int taxi_pos = variables_[0];
+	int pass_pos = variables_[1];
+	int pass_tgt = variables_[2];
+	if(p == taxi_pos)
+		printf("🚕 ");
+	else if(p == pass_to_taxi[pass_pos])
+		printf("🙋 ");
+	else if(p == pass_to_taxi[pass_tgt])
+		printf("🎯 ");
+	else
+		printf("  ");
+}
+
+void TaxiDomainMdp::PrintBackspace() const {
+	for(int i=0; i<5+2; i++)
+		printf("\033[A");
+}

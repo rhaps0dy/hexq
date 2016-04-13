@@ -7,6 +7,8 @@
 /// Implements the Taxi domain from Hengst, 2003, which is in turn taken from
 /// Dietterich, 2000
 class TaxiDomainMdp : public MarkovDecisionProcess {
+private:
+	void PrintPosition(int p) const;
 protected:
 	State n_var_states_(int var) const {
 		static constexpr State n[3] = {25, 5, 4};
@@ -21,6 +23,10 @@ public:
 	Reward TakeAction(Action action);
 	bool terminated() const { return variables_[1] == variables_[2]; }
 	TaxiDomainMdp();
+	void Print() const;
+	/// Print enough backspaces so that the next TaxiDomainMdp::Print prints
+	/// over the previous one.
+	void PrintBackspace() const;
 };
 
 #endif // TAXI_DOMAIN_MDP_HPP

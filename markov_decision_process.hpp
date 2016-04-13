@@ -75,6 +75,9 @@ public:
 	State state() const { return var_state(0); }
 	MarkovDecisionProcess(int n_vars) : variables_(n_vars),
 										freq_variable_(n_vars), variable_freq_(n_vars) {}
+
+	virtual void Print() const = 0;
+	virtual void PrintBackspace() const = 0;
 };
 
 #endif // MARKOV_DECISION_PROCESS_HPP
