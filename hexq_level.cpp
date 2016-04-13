@@ -188,7 +188,6 @@ Reward HexqLevel::TakeAction(Action exit) {
 		sa = next_sa;
 		a = next_a;
 	}
-	// TODO: reward equation
 	assert(a == target_a);
 	return prev_lvl_->TakeAction(a);
 }
