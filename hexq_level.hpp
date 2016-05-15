@@ -11,6 +11,8 @@
 #include "explained_assert.hpp"
 #include "directed_graph.hpp"
 
+namespace hexq {
+
 typedef State Region;
 
 /**
@@ -139,5 +141,6 @@ public:
 	void OutputInfo();
 };
 
+}
 
 #endif // HEXQ_LEVEL_HPP

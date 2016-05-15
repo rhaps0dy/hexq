@@ -2,6 +2,7 @@
 #include <random>
 #include <unistd.h>
 
+namespace hexq {
 using namespace std;
 
 constexpr static int pass_to_taxi[] = {0, 4, 20, 24, -1};
@@ -88,21 +89,34 @@ void TaxiDomainMdp::Print() const {
 				printf(" ");
 			PrintPosition(p);
 		}
-		printf("║\n");
+		if(i==3)
+			printf("║ %2d %d %d\n", variables_[0], variables_[1], variables_[2]);
+		else
+			printf("║\n");
 	}
 	puts("╚══╩═════╩═════╝");
 }
+
+#ifdef HAVE_EMOJI
+#define TAXI "🚕 "
+#define PASSENGER "🙋 "
+#define TARGET "🎯 "
+#else
+#define TAXI "@@"
+#define PASSENGER "o/"
+#define TARGET "()"
+#endif
 
 void TaxiDomainMdp::PrintPosition(int p) const {
 	int taxi_pos = variables_[0];
 	int pass_pos = variables_[1];
 	int pass_tgt = variables_[2];
 	if(p == taxi_pos)
-		printf("🚕 ");
+		printf(TAXI);
 	else if(p == pass_to_taxi[pass_pos])
-		printf("🙋 ");
+		printf(PASSENGER);
 	else if(p == pass_to_taxi[pass_tgt])
-		printf("🎯 ");
+		printf(TARGET);
 	else
 		printf("  ");
 }
@@ -110,4 +124,6 @@ void TaxiDomainMdp::PrintPosition(int p) const {
 void TaxiDomainMdp::PrintBackspace() const {
 	for(int i=0; i<5+2; i++)
 		printf("\033[A");
+}
+
 }

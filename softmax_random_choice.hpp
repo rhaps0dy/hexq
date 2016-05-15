@@ -8,6 +8,8 @@
 
 #include <cstdio>
 
+namespace hexq {
+
 /// Random generator class that chooses a int based on log-probabilities
 /** The constructor takes a vector of double-like values, and uses it as
  * log-probability for generating one integer in the range [0, log_p_vec_size)
@@ -32,5 +34,7 @@ public:
 		return it-ps_.begin();
 	}
 };
+
+}
 
 #endif // SOFTMAX_RANDOM_CHOICE_HPP

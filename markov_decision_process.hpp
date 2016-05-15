@@ -4,6 +4,8 @@
 #include <vector>
 #include <cstddef>
 
+namespace hexq {
+
 /*
  * These data types are not opaque. The interface of the MAXQLevel
  * class assumes they are integers. Still, the aliases are useful for clarity.
@@ -73,8 +75,8 @@ public:
 		return false;
 	}
 
-	State n_states() const { return n_var_states(0); }
-	State state() const { return var_state(0); }
+	State n_states() const { return n_var_states(variable_freq_[0]); }
+	State state() const { return var_state(variable_freq_[0]); }
 	virtual void Print() const = 0;
 	virtual void PrintBackspace() const = 0;
 
@@ -82,6 +84,24 @@ public:
 	MarkovDecisionProcess(int n_vars) : variables_(n_vars),
 										freq_variable_(n_vars),
 										variable_freq_(n_vars), frame_time(0) {}
+
+	State StateUniqueID() const {
+		State id=0;
+		for(int i=n_variables()-1; i>=0; i--) {
+			int ii = variable_freq_[i];
+			id *= n_var_states(ii);
+			id += var_state(ii);
+		}
+		return id;
+	}
+	State NumStateUniqueIDs() const {
+		State n=1;
+		for(size_t i=0; i<n_variables(); i++)
+			n *= n_var_states(i);
+		return n;
+	}
 };
+
+}
 
 #endif // MARKOV_DECISION_PROCESS_HPP

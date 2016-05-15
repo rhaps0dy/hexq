@@ -50,6 +50,7 @@ Makefile
 a.pdf
 dag_0.pdf
 hexq
+plain_sarsa
 initial_0.pdf
 test.cpp
 *.save

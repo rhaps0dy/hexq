@@ -8,6 +8,9 @@
 #include <fstream>
 #include "softmax_random_choice.hpp"
 
+
+namespace hexq {
+
 using namespace std;
 
 static default_random_engine generator;
@@ -254,4 +257,6 @@ void HexqLevel::BuildRegionsExitsOrRead(const std::string &fname, time_t time) {
 		ofstream o(fname);
 		o << *this;
 	}
+}
+
 }

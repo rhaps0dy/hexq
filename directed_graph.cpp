@@ -5,6 +5,8 @@
 #include "explained_assert.hpp"
 #include "directed_graph.hpp"
 
+namespace hexq {
+
 using namespace std;
 
 /// Struct for running Tarjan's algorithm. Credits to
@@ -178,8 +180,12 @@ unique_ptr<DirectedGraph> DirectedGraph::Reverse() const {
 	return move(dg);
 }
 
+}
+
 // small testing of the functions here
 #ifdef TEST_DIRECTEDGRAPH
+
+using namespace hexq;
 
 int main() {
 	DirectedGraph dg;

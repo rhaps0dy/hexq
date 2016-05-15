@@ -8,6 +8,8 @@
 #include <set>
 #include "explained_assert.hpp"
 
+namespace hexq {
+
 typedef std::vector<int> Assignment;
 typedef std::vector<std::vector<int> > AdjacencyList;
 
@@ -81,5 +83,7 @@ struct DirectedGraph {
 	 */
 	bool operator==(const DirectedGraph &b) const;
 };
+
+}
 
 #endif // DIRECTED_GRAPH_HPP

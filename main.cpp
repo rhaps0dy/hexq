@@ -1,15 +1,17 @@
 #include "hexq_level.hpp"
 #include "taxi_domain_mdp.hpp"
+#include "montezuma_mdp.hpp"
 #include "explained_assert.hpp"
 #include <iostream>
 #include <fstream>
 
 using namespace std;
+using namespace hexq;
 
-constexpr time_t TIME = 3;
+constexpr time_t TIME = 60;
 
 int main() {
-	TaxiDomainMdp mdp;
+	MontezumaMdp mdp;
 	cout << "Level 0" << endl;
 	HexqLevel lvl_0(-1, &mdp, &mdp);
 	lvl_0.BuildRegionsExitsOrRead("level_0.save", TIME);
@@ -25,10 +27,15 @@ int main() {
 	lvl_2.BuildRegionsExitsOrRead("level_2.save", TIME);
 	lvl_2.OutputInfo();
 
+	cout << "Level 3" << endl;
+	HexqLevel lvl_3(3, &lvl_2, &mdp);
+	lvl_3.BuildRegionsExitsOrRead("level_3.save", TIME);
+	lvl_3.OutputInfo();
+
 	mdp.frame_time = 100000;
 	for(int i=0; i<10; i++) {
 		mdp.Reset();
-		lvl_2.TakeAction(0);
+		lvl_3.TakeAction(0);
 	}
 
 	ofstream o0("level_0.save");
@@ -37,6 +44,7 @@ int main() {
 	o1 << lvl_1;
 	ofstream o2("level_2.save");
 	o2 << lvl_2;
-	printf("\n\n\n\n\n\n\n");
+	ofstream o3("level_3.save");
+	o3 << lvl_3;
 	return 0;
 }

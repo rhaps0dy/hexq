@@ -9,6 +9,8 @@
 	assert(((void)(explanation), condition))
 
 
+namespace hexq {
+
 template<typename T>
 std::ostream &operator<<(std::ostream &os, const std::vector<T> &v) {
 	os << v.size();
@@ -25,6 +27,8 @@ std::istream &operator>>(std::istream &is, std::vector<T> &v) {
 	for(size_t i=0; i<sz; i++)
 		is >> v[i];
 	return is;
+}
+
 }
 
 #endif // EXPLAINED_ASSERT_HPP

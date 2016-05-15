@@ -4,6 +4,8 @@
 #include "markov_decision_process.hpp"
 #include "explained_assert.hpp"
 
+namespace hexq {
+
 /// Implements the Taxi domain from Hengst, 2003, which is in turn taken from
 /// Dietterich, 2000
 class TaxiDomainMdp : public MarkovDecisionProcess {
@@ -28,5 +30,7 @@ public:
 	/// over the previous one.
 	void PrintBackspace() const;
 };
+
+}
 
 #endif // TAXI_DOMAIN_MDP_HPP
