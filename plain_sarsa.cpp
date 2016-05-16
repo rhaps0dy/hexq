@@ -49,12 +49,19 @@ constexpr int MAX_STEPS_EPISODE = 100000;
 constexpr double DISCOUNT = .995;
 constexpr double ALPHA = .001;
 
-int main() {
+int main(int argc, char **argv) {
 	string dirname = experiment_name("montezuma_revenge");
-	system(("mkdir " + dirname).c_str());
 	stringstream ss2;
 	ss2 << dirname << "/rewards.txt";
 	string results_file = ss2.str();
+
+	if(argc > 1) {
+		ifstream q(argv[1]);
+		sparse_vector_load(q, Q);
+		q.close();
+	} else {
+		system(("mkdir " + dirname).c_str());
+	}
 
 	for(int episode=0; episode<1000000; episode++) {
 //		const double epsilon = max(0.1, .6-1e-5*episode);
@@ -82,11 +89,11 @@ int main() {
 		}
 		cout << "step " << step_n << ", total_reward " << total_reward << endl;
 		// Write episode results to disk
-		if(episode % 10000 == 9999) {
+		if(episode % 1000 == 999) {
 			stringstream ss;
 			ss << dirname << "/episode_" << setw(7) << setfill('0') << episode;
 			ofstream ep(ss.str());
-			ep << Q;
+			sparse_vector_save(ep, Q);
 			ep.close();
 		}
 		fstream results;
