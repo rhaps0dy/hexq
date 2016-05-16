@@ -7,6 +7,7 @@
 #include <fstream>
 #include <sstream>
 #include <ctime>
+#include <cstdlib>
 
 using namespace hexq;
 using namespace std;
@@ -17,7 +18,7 @@ string experiment_name(string prefix) {
 	char buffer[80];
 	time (&rawtime);
 	timeinfo = localtime(&rawtime);
-	strftime(buffer,80,"_%Y_%m_%d_%I_%M_%S",timeinfo);
+	strftime(buffer,80,"_%Y_%m_%d_%H_%M_%S",timeinfo);
 	return prefix + string(buffer);
 }
 
@@ -50,12 +51,14 @@ constexpr double ALPHA = .001;
 
 int main() {
 	string dirname = experiment_name("montezuma_revenge");
+	system(("mkdir " + dirname).c_str());
 	stringstream ss2;
 	ss2 << dirname << "/rewards.txt";
 	string results_file = ss2.str();
 
 	for(int episode=0; episode<1000000; episode++) {
-		const double epsilon = max(0.1, 1-1e-6*episode);
+//		const double epsilon = max(0.1, .6-1e-5*episode);
+		const double epsilon = 0.1;
 		cout << "Episode " << episode << ", epsilon=" << epsilon << endl;
 		Reward total_reward = 0;
 		int step_n;
@@ -79,11 +82,13 @@ int main() {
 		}
 		cout << "step " << step_n << ", total_reward " << total_reward << endl;
 		// Write episode results to disk
-		stringstream ss;
-		ss << dirname << "/episode_" << setw(7) << setfill('0') << episode;
-		ofstream ep(ss.str());
-		ep << Q;
-		ep.close();
+		if(episode % 10000 == 9999) {
+			stringstream ss;
+			ss << dirname << "/episode_" << setw(7) << setfill('0') << episode;
+			ofstream ep(ss.str());
+			ep << Q;
+			ep.close();
+		}
 		fstream results;
 		results.open(results_file, fstream::app);
 		results << total_reward << ", " << step_n << endl;

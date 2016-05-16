@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 project(HEXQ)
 
 set(CMAKE_CXX_FLAGS_DEBUG  "${CMAKE_CXX_FLAGS_DEBUG} -g")
-set(CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE} "-O3")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11") 
 set(ROM_DIR "/home/adria/Dropbox/TFG" CACHE FILEPATH "ROM directory")
 add_definitions(-DROM_DIR="${ROM_DIR}")

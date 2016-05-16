@@ -54,3 +54,5 @@ plain_sarsa
 initial_0.pdf
 test.cpp
 *.save
+
+montezuma_revenge_*
