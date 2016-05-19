@@ -66,7 +66,7 @@ constexpr double DISCOUNT = .995;
 constexpr double ALPHA = .01;
 
 void evaluate(char *fname) {
-	cout << "Evaluating \"" << fname << "\"\n";
+	cout << "Evaluating \"" << fname << "\": ";
 	ifstream q(fname);
 	sparse_vector_load(q, Q);
 	q.close();
@@ -106,7 +106,7 @@ int main(int argc, char **argv) {
 		system(("mkdir " + dirname).c_str());
 	}
 
-	for(int episode=0; episode<1000000; episode++) {
+	for(int episode=1; episode<=1000000; episode++) {
 		const double epsilon = 0.1;
 		cout << "Episode " << episode << ", epsilon=" << epsilon << endl;
 		Reward total_reward = 0;
@@ -116,7 +116,7 @@ int main(int argc, char **argv) {
 		State s = mdp.StateUniqueID();
 		hexq::Action a = ChooseAction(s, epsilon);
 		StateAction sa = s*n_actions + a;
-		for(step_n=0; step_n<MAX_STEPS_EPISODE && !mdp.terminated(); step_n++) {
+		for(step_n=1; step_n<=MAX_STEPS_EPISODE && !mdp.terminated(); step_n++) {
 			Reward r = mdp.TakeAction(a);
 			State next_s = mdp.StateUniqueID();
 			hexq::Action next_a = ChooseAction(next_s, epsilon);
@@ -131,7 +131,7 @@ int main(int argc, char **argv) {
 		}
 		cout << "step " << step_n << ", total_reward " << total_reward << endl;
 		// Write episode results to disk
-		if(episode % 1000 == 999) {
+		if(episode % 1000 == 0) {
 			stringstream ss;
 			ss << dirname << "/episode_" << setw(7) << setfill('0') << episode;
 			ofstream ep(ss.str());

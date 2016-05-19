@@ -24,7 +24,7 @@ Reward MontezumaMdp::TakeAction(Action action) {
 	variables_[1] = ale_.getRAM().get(0xaa);
 	variables_[2] = ale_.getRAM().get(0xab);
 	variables_[3] = (ale_.getRAM().get(0xc1) & 0x1e ? 1 : 0);
-	return max(min(r/100., 1.), -1.);
+	return r/100.;
 }
 
 typedef uniform_int_distribution<int> Rand;
