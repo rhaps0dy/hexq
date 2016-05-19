@@ -15,7 +15,7 @@ include_directories(${ALE_DIR}/src)
 link_directories(${ALE_DIR})
 
 
-set(OTHERS directed_graph.cpp hexq_level.cpp taxi_domain_mdp.cpp montezuma_mdp.cpp)
+set(OTHERS directed_graph.cpp hexq_level.cpp taxi_domain_mdp.cpp montezuma_mdp.cpp montezuma_options_mdp.cpp)
 add_executable(hexq main.cpp ${OTHERS})
 add_executable(plain_sarsa plain_sarsa.cpp ${OTHERS})
 add_executable(visualize_q visualize_q.cpp ${OTHERS})

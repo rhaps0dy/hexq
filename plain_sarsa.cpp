@@ -1,4 +1,4 @@
-#include "montezuma_mdp.hpp"
+#include "montezuma_options_mdp.hpp"
 #include "explained_assert.hpp"
 #include <vector>
 #include <random>
@@ -22,7 +22,8 @@ string experiment_name(string prefix) {
 	return prefix + string(buffer);
 }
 
-static MontezumaMdp mdp;
+static MontezumaOptionsMdp mdp;
+//static MontezumaMdp mdp;
 static const int n_actions = mdp.n_actions(0);
 static vector<Reward> Q(mdp.NumStateUniqueIDs()*n_actions, 0.0);
 static default_random_engine generator;
@@ -89,7 +90,7 @@ void evaluate(char *fname) {
 }
 
 int main(int argc, char **argv) {
-	string dirname = experiment_name("montezuma_revenge");
+	string dirname = experiment_name("montezuma_revenge_options");
 	stringstream ss2;
 	ss2 << dirname << "/rewards.txt";
 	string results_file = ss2.str();

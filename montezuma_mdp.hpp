@@ -4,6 +4,9 @@
 #include "markov_decision_process.hpp"
 #include "explained_assert.hpp"
 #include <ale_interface.hpp>
+#include <vector>
+
+typedef Action ALEAction;
 
 namespace hexq {
 
@@ -11,6 +14,8 @@ namespace hexq {
 /// Dietterich, 2000
 class MontezumaMdp : public MarkovDecisionProcess {
 protected:
+	const static std::vector<ALEAction> ale_actions;
+
 	State n_var_states_(int var) const {
 		static constexpr State n[] = {0x48-0x16+1, 0x100, 0x100, 2};
 		ASSERT(0 <= var && var < sizeof(n), "Avoid out of bounds errors");

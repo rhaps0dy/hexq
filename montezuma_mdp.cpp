@@ -3,18 +3,18 @@
 
 using namespace std;
 
-constexpr static Action ale_actions[] = {
-	PLAYER_A_NOOP,
-    PLAYER_A_FIRE,
-    PLAYER_A_UP,
-    PLAYER_A_RIGHT,
-    PLAYER_A_LEFT,
-    PLAYER_A_DOWN,
-    PLAYER_A_RIGHTFIRE,
-    PLAYER_A_LEFTFIRE
-};
-
 namespace hexq {
+
+const vector<ALEAction> MontezumaMdp::ale_actions = {
+	PLAYER_A_NOOP,
+	PLAYER_A_FIRE,
+	PLAYER_A_UP,
+	PLAYER_A_RIGHT,
+	PLAYER_A_LEFT,
+	PLAYER_A_DOWN,
+	PLAYER_A_RIGHTFIRE,
+	PLAYER_A_LEFTFIRE
+};
 
 Reward MontezumaMdp::TakeAction(Action action) {
 	reward_t r = 0;
