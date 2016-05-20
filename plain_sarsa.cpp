@@ -1,5 +1,6 @@
 #include "montezuma_options_mdp.hpp"
 #include "explained_assert.hpp"
+#include "circular_buffer.hpp"
 #include <vector>
 #include <random>
 #include <utility>
@@ -22,8 +23,8 @@ string experiment_name(string prefix) {
 	return prefix + string(buffer);
 }
 
-static MontezumaOptionsMdp mdp;
-//static MontezumaMdp mdp;
+//static MontezumaOptionsMdp mdp;
+static MontezumaMdp mdp;
 static const int n_actions = mdp.n_actions(0);
 static vector<Reward> Q(mdp.NumStateUniqueIDs()*n_actions, 0.0);
 static default_random_engine generator;
@@ -64,6 +65,8 @@ hexq::Action ChooseAction(State s, double epsilon) {
 
 constexpr int MAX_STEPS_EPISODE = 100000;
 constexpr double DISCOUNT = .995;
+constexpr double PROPAGATING_DECAY = .96;
+constexpr size_t STATE_TAIL_SIZE = 100;
 constexpr double ALPHA = .01;
 
 void evaluate(char *fname) {
@@ -89,11 +92,19 @@ void evaluate(char *fname) {
 	cout << "Total reward: " << total_reward << endl << endl;
 }
 
+static double trace_discounts[STATE_TAIL_SIZE];
+
 int main(int argc, char **argv) {
 	string dirname = experiment_name("montezuma_revenge_options");
 	stringstream ss2;
 	ss2 << dirname << "/rewards.txt";
 	string results_file = ss2.str();
+
+	for(size_t i=0; i<STATE_TAIL_SIZE; i++) {
+		static double d=1;
+		trace_discounts[i] = d;
+		d *= DISCOUNT*PROPAGATING_DECAY;
+	}
 
 	if(argc == 2) {
 		ifstream q(argv[1]);
@@ -112,6 +123,7 @@ int main(int argc, char **argv) {
 		cout << "Episode " << episode << ", epsilon=" << epsilon << endl;
 		Reward total_reward = 0;
 		int step_n;
+		CircularBuffer<StateAction> trace(STATE_TAIL_SIZE);
 
 		mdp.Reset();
 		State s = mdp.StateUniqueID();
@@ -122,7 +134,10 @@ int main(int argc, char **argv) {
 			State next_s = mdp.StateUniqueID();
 			hexq::Action next_a = ChooseAction(next_s, epsilon);
 			StateAction next_sa = next_s*n_actions + next_a;
-			Q[sa] += ALPHA*(r + DISCOUNT*Q[next_sa] - Q[sa]);
+			Reward delta = r + DISCOUNT*Q[next_sa] - Q[sa];
+			trace.push_front_overwriting(sa);
+			for(size_t i=0; i<trace.size(); i++)
+				Q[trace[i]] += ALPHA*delta*trace_discounts[i];
 			sa = next_sa;
 			a = next_a;
 
