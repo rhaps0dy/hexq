@@ -69,12 +69,20 @@ int main(int argc, char *argv[]) {
 	int i=0;
 	while (!mdp.terminated()) {
 		const State s = mdp.StateUniqueID()*8;
-		for(hexq::Action a=0; a<8; a++)
+		Reward rr=-10000;
+		hexq::Action aa = 10;
+		for(hexq::Action a=0; a<8; a++) {
 			cout << arr[a] << ' ' << Q[s+a] << endl;
+			if(Q[s+a] > rr) {
+				cout << "Replacing " << a << " with " << aa <<  " (" << rr << ", " << Q[s+a] << ")" << endl;
+				aa = a;
+				rr = Q[s+a];
+			}
+		}
 		cout << endl;
 		hexq::Action a;
 		scanf("%d", &a);
-		total_reward += mdp.TakeAction(a);
+		total_reward += mdp.TakeAction(aa);
 		getchar();
 	}
 	cout << "total_reward " << total_reward << endl;

@@ -157,14 +157,12 @@ Reward MontezumaOptionsMdp::TakeAction(Action action) {
 			i++;
 		}
 	}
-	variables_.at(0) = ale_.getRAM().get(0xaf) - 0x16;
-	variables_.at(1) = ale_.getRAM().get(0xaa);
-	variables_.at(2) = ale_.getRAM().get(0xab);
-	variables_.at(3) = (ale_.getRAM().get(0xc1) & 0x1e ? 1 : 0);
-	return r/100. - 0.01;
+	return ComputeState(r);
 }
 
 MontezumaOptionsMdp::MontezumaOptionsMdp() : MontezumaMdp() {
+	ale_.setFloat("repeat_action_probability", 0.0);
+	ale_.setInt("frame_skip", 1);
 	display_ = NULL;
 //	display_ = ale_.theOSystem->p_display_screen;
 //	ale_.theOSystem->p_display_screen = NULL;

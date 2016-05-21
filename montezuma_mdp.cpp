@@ -16,15 +16,23 @@ const vector<ALEAction> MontezumaMdp::ale_actions = {
 	PLAYER_A_LEFTFIRE
 };
 
-Reward MontezumaMdp::TakeAction(Action action) {
-	reward_t r = 0;
-	for(int i=0; i<FRAME_SKIP; i++)
-		r += ale_.act(ale_actions[action]);
+Reward MontezumaMdp::ComputeState(reward_t r) {
 	variables_[0] = ale_.getRAM().get(0xaf) - 0x16;
 	variables_[1] = ale_.getRAM().get(0xaa);
 	variables_[2] = ale_.getRAM().get(0xab);
 	variables_[3] = (ale_.getRAM().get(0xc1) & 0x1e ? 1 : 0);
+	if(variables_[0] == 0)
+		variables_[4] = 0;
+	else if(variables_[0] == 0x48-0x16)
+		variables_[4] = 1;
 	return r/100. - 0.01;
+}
+
+Reward MontezumaMdp::TakeAction(Action action) {
+	reward_t r = 0;
+	for(int i=0; i<FRAME_SKIP; i++)
+		r += ale_.act(ale_actions[action]);
+	return ComputeState(r);
 }
 
 typedef uniform_int_distribution<int> Rand;
@@ -38,13 +46,17 @@ MontezumaMdp::MontezumaMdp() : MarkovDecisionProcess(4) {
 	variable_freq_[1] = 1;
 	variable_freq_[2] = 2;
 	variable_freq_[3] = 3;
+	variable_freq_[4] = 4;
 	freq_variable_[0] = 0;
 	freq_variable_[1] = 1;
 	freq_variable_[2] = 2;
 	freq_variable_[3] = 3;
+	freq_variable_[4] = 4;
+
+	variables_[4] = 1;
 
 	ale_.setInt("random_seed", 1234);
-	ale_.setBool("display_screen", false);
+	ale_.setBool("display_screen", true);
 	ale_.setBool("sound", false);
 	ale_.setInt("fragsize", 64);
 	ale_.setFloat("repeat_action_probability", 0);
@@ -53,8 +65,8 @@ MontezumaMdp::MontezumaMdp() : MarkovDecisionProcess(4) {
 }
 
 void MontezumaMdp::Print() const {
-	printf("%4d %4d %4d %4d\n",
-		   variables_[0], variables_[1], variables_[2], variables_[3]);
+	printf("%3d %3d %3d %1d %1d\n",
+		   variables_[0], variables_[1], variables_[2], variables_[3], variables_[4]);
 }
 
 void MontezumaMdp::PrintBackspace() const {
