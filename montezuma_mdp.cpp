@@ -3,6 +3,8 @@
 
 using namespace std;
 
+#include "montezuma_potential.h"
+
 namespace hexq {
 
 const vector<ALEAction> MontezumaMdp::ale_actions = {
@@ -17,31 +19,37 @@ const vector<ALEAction> MontezumaMdp::ale_actions = {
 };
 
 Reward MontezumaMdp::ComputeState(reward_t r) {
+	Reward old_p = potential[variables_[3]][variables_[2]][variables_[1]];
 	variables_[0] = ale_.getRAM().get(0xaf) - 0x16;
 	variables_[1] = ale_.getRAM().get(0xaa);
 	variables_[2] = ale_.getRAM().get(0xab);
 	variables_[3] = (ale_.getRAM().get(0xc1) & 0x1e ? 1 : 0);
+	Reward p = potential[variables_[3]][variables_[2]][variables_[1]];
 	if(variables_[0] == 0)
 		variables_[4] = 0;
 	else if(variables_[0] == 0x48-0x16)
 		variables_[4] = 1;
-	return r/100.;
+	p = MarkovDecisionProcess::DISCOUNT*p - old_p;
+	return r/100. + p;
 }
 
 Reward MontezumaMdp::TakeAction(Action action) {
 	reward_t r = 0;
+	auto l = ale_.lives();
 	for(int i=0; i<FRAME_SKIP; i++)
 		r += ale_.act(ale_actions[action]);
+	lost_life_ = lost_life_ || ale_.lives() < l;
 	return ComputeState(r);
 }
 
 typedef uniform_int_distribution<int> Rand;
 void MontezumaMdp::Reset() {
+	lost_life_ = false;
 	ale_.reset_game();
 }
 
 
-MontezumaMdp::MontezumaMdp() : MarkovDecisionProcess(4) {
+MontezumaMdp::MontezumaMdp() : MarkovDecisionProcess(4), lost_life_(false) {
 	variable_freq_[0] = 0;
 	variable_freq_[1] = 1;
 	variable_freq_[2] = 2;
@@ -56,12 +64,12 @@ MontezumaMdp::MontezumaMdp() : MarkovDecisionProcess(4) {
 	variables_[4] = 1;
 
 	ale_.setInt("random_seed", 1234);
-	ale_.setBool("display_screen", false);
+	ale_.setBool("display_screen", true);
 	ale_.setBool("sound", false);
 	ale_.setInt("fragsize", 64);
 	ale_.setFloat("repeat_action_probability", 0);
 // ROM_DIR is defined in the Makefile
-	ale_.loadROM(ROM_DIR "/montezuma_revenge.bin");
+	ale_.loadROM(ROM_DIR "/montezuma_revenge_original.bin");
 }
 
 void MontezumaMdp::Print() const {

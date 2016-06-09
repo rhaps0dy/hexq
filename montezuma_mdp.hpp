@@ -23,13 +23,14 @@ protected:
 	}
 	Reward ComputeState(reward_t r);
 	ALEInterface ale_;
+	bool lost_life_;
 public:
 	static constexpr int FRAME_SKIP = 4;
 	Action n_actions(State s) const { return 8; }
 	/// Randomly sets the state of the domain
 	void Reset();
 	Reward TakeAction(Action action);
-	bool terminated() const { return ale_.game_over(); }
+	bool terminated() const { return lost_life_ || ale_.game_over(); }
 	MontezumaMdp();
 	void Print() const;
 	/// Print enough backspaces so that the next MontezumaMdp::Print prints

@@ -8,6 +8,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(ROM_DIR "/home/adria/Dropbox/TFG" CACHE FILEPATH "ROM directory")
 add_definitions(-DROM_DIR="${ROM_DIR}")
 set(HAVE_EMOJI OFF CACHE BOOL "Whether to use emoji when drawing the taxi domain")
+if(HAVE_EMOJI)
+	add_definitions(-DHAVE_EMOJI)
+endif(HAVE_EMOJI)
 
 set(ALE_DIR "/home/adria/Programacio/Arcade-Learning-Environment" CACHE FILEPATH "Repository root for the Arcade Learning Environment")
 

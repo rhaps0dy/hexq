@@ -45,6 +45,7 @@ protected:
 	std::vector<int> variable_freq_;
 	virtual State n_var_states_(int var) const = 0;
 public:
+	static constexpr double DISCOUNT = .995;
 	/// Number of variables for the MDP state
 	size_t n_variables() const { return variables_.size(); }
 	/// Current state of a given variable.

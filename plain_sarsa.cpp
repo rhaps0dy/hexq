@@ -46,25 +46,28 @@ hexq::Action ChooseAction(State s, double epsilon) {
 		uniform_int_distribution<hexq::Action> choose_action(0, n_actions-1);
 		return choose_action(generator);
 	}
-	hexq::Action chosen_a = 0;
-	Reward q_max = Q[s*n_actions + chosen_a];
+	std::vector<hexq::Action> chosen_a = {0};
+	Reward q_max = Q[s*n_actions + 0];
 //	cout << "Action " << arr[0] << ", Q " << q_max << endl;
 	for(hexq::Action i=1; i<n_actions; i++) {
 		Reward q = Q[s*n_actions + i];
 		if(q > q_max) {
 			q_max = q;
-			chosen_a = i;
+			chosen_a.clear();
+			chosen_a.push_back(i);
+		} else if (q == q_max) {
+			chosen_a.push_back(i);
 		}
 //		cout << "Action " << arr[i] << ", Q " << Q[s*n_actions + i] << endl;
 	}
 //	cout << "max: " << arr[chosen_a] << endl;
 //	int i;
 //	cin >> i;
-	return chosen_a;
+	uniform_int_distribution<hexq::Action> choose_action(0, chosen_a.size()-1);
+	return chosen_a[choose_action(generator)];
 }
 
 constexpr int MAX_STEPS_EPISODE = 100000;
-constexpr double DISCOUNT = .995;
 constexpr double PROPAGATING_DECAY = .96;
 constexpr size_t STATE_TAIL_SIZE = 10;
 constexpr double ALPHA = .01;
@@ -103,7 +106,7 @@ int main(int argc, char **argv) {
 	for(size_t i=0; i<STATE_TAIL_SIZE; i++) {
 		static double d=1;
 		trace_discounts[i] = d;
-		d *= DISCOUNT*PROPAGATING_DECAY;
+		d *= MarkovDecisionProcess::DISCOUNT*PROPAGATING_DECAY;
 	}
 
 	if(argc == 2) {
@@ -133,7 +136,7 @@ int main(int argc, char **argv) {
 			State next_s = mdp.StateUniqueID();
 			hexq::Action next_a = ChooseAction(next_s, epsilon);
 			StateAction next_sa = next_s*n_actions + next_a;
-			Reward delta = r + DISCOUNT*Q[next_sa] - Q[sa];
+			Reward delta = r + MarkovDecisionProcess::DISCOUNT*Q[next_sa] - Q[sa];
 			trace.push_front_overwriting(sa);
 			for(size_t i=0; i<trace.size(); i++)
 				Q[trace[i]] += ALPHA*delta*trace_discounts[i];
