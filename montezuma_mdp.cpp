@@ -25,7 +25,7 @@ Reward MontezumaMdp::ComputeState(reward_t r) {
 		variables_[4] = 0;
 	else if(variables_[0] == 0x48-0x16)
 		variables_[4] = 1;
-	return r/100. - 0.01;
+	return r/100.;
 }
 
 Reward MontezumaMdp::TakeAction(Action action) {
@@ -56,7 +56,7 @@ MontezumaMdp::MontezumaMdp() : MarkovDecisionProcess(4) {
 	variables_[4] = 1;
 
 	ale_.setInt("random_seed", 1234);
-	ale_.setBool("display_screen", true);
+	ale_.setBool("display_screen", false);
 	ale_.setBool("sound", false);
 	ale_.setInt("fragsize", 64);
 	ale_.setFloat("repeat_action_probability", 0);

@@ -66,7 +66,7 @@ hexq::Action ChooseAction(State s, double epsilon) {
 constexpr int MAX_STEPS_EPISODE = 100000;
 constexpr double DISCOUNT = .995;
 constexpr double PROPAGATING_DECAY = .96;
-constexpr size_t STATE_TAIL_SIZE = 100;
+constexpr size_t STATE_TAIL_SIZE = 10;
 constexpr double ALPHA = .01;
 
 void evaluate(char *fname) {
@@ -114,12 +114,11 @@ int main(int argc, char **argv) {
 		for(int i=1; i<argc; i++)
 			evaluate(argv[i]);
 		return 0;
-	} else {
-		system(("mkdir " + dirname).c_str());
 	}
+	system(("mkdir " + dirname).c_str());
 
 	for(int episode=1; episode<=1000000; episode++) {
-		const double epsilon = 0.1;
+		constexpr double epsilon = 0.1;
 		cout << "Episode " << episode << ", epsilon=" << epsilon << endl;
 		Reward total_reward = 0;
 		int step_n;
