@@ -69,7 +69,7 @@ hexq::Action ChooseAction(State s, double epsilon) {
 
 constexpr int MAX_STEPS_EPISODE = 100000;
 constexpr double PROPAGATING_DECAY = .96;
-constexpr size_t STATE_TAIL_SIZE = 10;
+constexpr size_t STATE_TAIL_SIZE = 1;
 constexpr double ALPHA = .01;
 
 void evaluate(char *fname) {
@@ -98,7 +98,7 @@ void evaluate(char *fname) {
 static double trace_discounts[STATE_TAIL_SIZE];
 
 int main(int argc, char **argv) {
-	string dirname = experiment_name("montezuma_revenge_options");
+	string dirname = experiment_name("phi_notraces_noanneal_init_deathpenalty");
 	stringstream ss2;
 	ss2 << dirname << "/rewards.txt";
 	string results_file = ss2.str();

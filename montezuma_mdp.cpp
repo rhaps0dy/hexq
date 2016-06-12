@@ -30,7 +30,7 @@ Reward MontezumaMdp::ComputeState(reward_t r) {
 	else if(variables_[0] == 0x48-0x16)
 		variables_[4] = 1;
 	p = MarkovDecisionProcess::DISCOUNT*p - old_p;
-	return r/100. + p;
+	return r/100. + p*10. + (lost_life_? -50 : 0);
 }
 
 Reward MontezumaMdp::TakeAction(Action action) {
@@ -39,6 +39,7 @@ Reward MontezumaMdp::TakeAction(Action action) {
 	for(int i=0; i<FRAME_SKIP; i++)
 		r += ale_.act(ale_actions[action]);
 	lost_life_ = lost_life_ || ale_.lives() < l;
+	lost_life_ = lost_life_ || ale_.getRAM().get(0xd8) >= 8;
 	return ComputeState(r);
 }
 
@@ -64,7 +65,7 @@ MontezumaMdp::MontezumaMdp() : MarkovDecisionProcess(4), lost_life_(false) {
 	variables_[4] = 1;
 
 	ale_.setInt("random_seed", 1234);
-	ale_.setBool("display_screen", true);
+	ale_.setBool("display_screen", false);
 	ale_.setBool("sound", false);
 	ale_.setInt("fragsize", 64);
 	ale_.setFloat("repeat_action_probability", 0);
