@@ -98,7 +98,7 @@ void evaluate(char *fname) {
 static double trace_discounts[STATE_TAIL_SIZE];
 
 int main(int argc, char **argv) {
-	string dirname = experiment_name("montezuma_revenge_options");
+	string dirname = experiment_name("montezuma_revenge_phi2_anneal");
 	stringstream ss2;
 	ss2 << dirname << "/rewards.txt";
 	string results_file = ss2.str();
@@ -121,7 +121,7 @@ int main(int argc, char **argv) {
 	system(("mkdir " + dirname).c_str());
 
 	for(int episode=1; episode<=1000000; episode++) {
-		constexpr double epsilon = 0.1;
+		const double epsilon = max(0.1, 0.7-3e-4*episode);
 		cout << "Episode " << episode << ", epsilon=" << epsilon << endl;
 		Reward total_reward = 0;
 		int step_n;

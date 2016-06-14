@@ -24,7 +24,8 @@ Reward MontezumaMdp::ComputeState(reward_t r) {
 	variables_[1] = ale_.getRAM().get(0xaa);
 	variables_[2] = ale_.getRAM().get(0xab);
 	variables_[3] = (ale_.getRAM().get(0xc1) & 0x1e ? 1 : 0);
-	Reward p = potential[variables_[3]][variables_[2]][variables_[1]];
+	variables_[5] = (ale_.getRAM().get(0xd8) >= 8 ? 1 : 0);
+	Reward p = max(potential[variables_[3]][variables_[2]][variables_[1]], 0.) + 1.;
 	if(variables_[0] == 0)
 		variables_[4] = 0;
 	else if(variables_[0] == 0x48-0x16)
@@ -49,22 +50,24 @@ void MontezumaMdp::Reset() {
 }
 
 
-MontezumaMdp::MontezumaMdp() : MarkovDecisionProcess(4), lost_life_(false) {
+MontezumaMdp::MontezumaMdp() : MarkovDecisionProcess(6), lost_life_(false) {
 	variable_freq_[0] = 0;
 	variable_freq_[1] = 1;
 	variable_freq_[2] = 2;
 	variable_freq_[3] = 3;
 	variable_freq_[4] = 4;
+	variable_freq_[5] = 5;
 	freq_variable_[0] = 0;
 	freq_variable_[1] = 1;
 	freq_variable_[2] = 2;
 	freq_variable_[3] = 3;
 	freq_variable_[4] = 4;
+	freq_variable_[5] = 5;
 
 	variables_[4] = 1;
 
 	ale_.setInt("random_seed", 1234);
-	ale_.setBool("display_screen", true);
+	ale_.setBool("display_screen", false);
 	ale_.setBool("sound", false);
 	ale_.setInt("fragsize", 64);
 	ale_.setFloat("repeat_action_probability", 0);

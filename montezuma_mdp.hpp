@@ -17,7 +17,7 @@ protected:
 	const static std::vector<ALEAction> ale_actions;
 
 	State n_var_states_(int var) const {
-		static constexpr State n[] = {0x48-0x16+1, 0x100, 0x100, 2, 2};
+		static constexpr State n[] = {0x48-0x16+1, 0x100, 0x100, 2, 2, 2};
 		ASSERT(0 <= var && var < sizeof(n), "Avoid out of bounds errors");
 		return n[var];
 	}
