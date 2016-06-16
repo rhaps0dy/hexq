@@ -19,19 +19,24 @@ const vector<ALEAction> MontezumaMdp::ale_actions = {
 };
 
 Reward MontezumaMdp::ComputeState(reward_t r) {
-	Reward old_p = potential[variables_[3]][variables_[2]][variables_[1]];
 	variables_[0] = ale_.getRAM().get(0xaf) - 0x16;
 	variables_[1] = ale_.getRAM().get(0xaa);
 	variables_[2] = ale_.getRAM().get(0xab);
 	variables_[3] = (ale_.getRAM().get(0xc1) & 0x1e ? 1 : 0);
 	variables_[5] = (ale_.getRAM().get(0xd8) >= 8 ? 1 : 0);
-	Reward p = max(potential[variables_[3]][variables_[2]][variables_[1]], 0.) + 1.;
+	Reward p;
+	if(variables_[5] == 0) {
+		p = max(potential[variables_[3]][variables_[2]][variables_[1]], 0.) + 1.;
+	} else {
+		p = 1.;
+	}
 	if(variables_[0] == 0)
 		variables_[4] = 0;
 	else if(variables_[0] == 0x48-0x16)
 		variables_[4] = 1;
-	p = MarkovDecisionProcess::DISCOUNT*p - old_p;
-	return r/100. + p;
+	Reward pp = MarkovDecisionProcess::DISCOUNT*p - old_p_;
+	old_p_ = p;
+	return r/100. + pp;
 }
 
 Reward MontezumaMdp::TakeAction(Action action) {
@@ -50,7 +55,7 @@ void MontezumaMdp::Reset() {
 }
 
 
-MontezumaMdp::MontezumaMdp() : MarkovDecisionProcess(6), lost_life_(false) {
+MontezumaMdp::MontezumaMdp() : MarkovDecisionProcess(6), lost_life_(false), old_p_(1.) {
 	variable_freq_[0] = 0;
 	variable_freq_[1] = 1;
 	variable_freq_[2] = 2;
