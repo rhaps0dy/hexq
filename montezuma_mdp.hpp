@@ -24,6 +24,7 @@ protected:
 	Reward ComputeState(reward_t r);
 	ALEInterface ale_;
 	bool lost_life_;
+	Reward old_p_;
 public:
 	static constexpr int FRAME_SKIP = 4;
 	Action n_actions(State s) const { return 8; }
