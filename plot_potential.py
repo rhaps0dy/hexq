@@ -4,6 +4,7 @@ import numpy as np
 import colormaps
 import scipy.misc
 import sys
+import cPickle
 
 plt.register_cmap(name='viridis', cmap=colormaps.viridis)
 plt.set_cmap(colormaps.viridis)
@@ -58,17 +59,17 @@ p_key = list(reversed(p_nokey)) + [
     (0x4d, 0xd3),
     (0x4d, 0x0e)]
 
-l_nokey = [(0x64, 0xc5),
-           (0x85, 0xc0),
+l_nokey = [(0x64, 0xc9),
+           (0x85, 0xc9),
            (0x85, 0x94),
            (0x15, 0x94),
            (0x15, 0xc0),
            (0x09, 0xcf),
            ]
 l_key = list(reversed(l_nokey))[:-1] + [
-    (0x4d, 0xc0),
-    (0x4d, 0xeb),
-    (0x99, 0xeb),
+    (0x48, 0xc9),
+    (0x48, 0xfb),
+    (0x99, 0xfb),
     ]
 
 def modulus(v, yscale=.5):
@@ -108,6 +109,7 @@ def progress(line, p):
 #    y__, x__ = pic_yx_to_ram_yx(100, 400)
 #    p = np.array((x__, y__), dtype=np.float64)
     for i in range(len(points)-1):
+        # Notation inverted in thesis, 1 is 2 and 2 is 1
         x1, y1 = p_ = points[i][0]
         vx1, vy1 = v_ = points[i][1]
         x2, y2 = p
@@ -131,9 +133,9 @@ def progress(line, p):
     return (points[i][2]+min_pti[1]*points[i][3]) / total_len
 
 def fun2(y, x, key):
-    if 0xba < y < 0xeb and 0x2a < x < 0x43:
-        return -1
-    return progress(lines[key], np.array((x, y)))
+#    if 0xba < y < 0xeb and 0x2a < x < 0x43:
+#        return -1
+    return progress(lines[key], np.array((x, y))) + 1.
 
 stride = 1
 
@@ -160,17 +162,24 @@ if paint:
     w = a.shape[1]*4/dpi
     h = a.shape[0]*4/dpi
 
-    plt.figure(figsize=(w, h), dpi=dpi)
-    plt.subplot(1, 3, 1)
-    plt.imshow(a, origin='lower')
-    plt.grid(color='r', linestyle='-', linewidth=1)
-    plt.subplot(1, 3, 2)
-    plt.imshow(b, origin='lower')
-    plt.grid(color='r', linestyle='-', linewidth=1)
-    plt.subplot(1, 3, 3)
-    plt.imshow(scipy.misc.imread("/Users/adria/Desktop/Montezuma's Revenge (1984) (Parker Bros).png")[::-1], origin='lower')
-    plt.grid(color='r', linestyle='-', linewidth=1)
-    plt.savefig('shaping.pdf')
+    def forceAspect(ax,aspect=1):
+        im = ax.get_images()
+        extent =  im[0].get_extent()
+        ax.set_aspect(abs((extent[1]-extent[0])/(extent[3]-extent[2]))/aspect)
+
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(w, h), dpi=dpi)
+    y1, x1 = pic_yx_to_ram_yx(0, 0)
+    y2, x2 = pic_yx_to_ram_yx(a.shape[0], a.shape[1])
+    ax1.imshow(a, origin='lower', extent=[x1,x2,y1,y2])
+    ax1.grid(color='r', linestyle='-', linewidth=1)
+    forceAspect(ax1, a.shape[1]/float(a.shape[0]))
+    ax2.imshow(b, origin='lower', extent=[x1,x2,y1,y2])
+    ax2.grid(color='r', linestyle='-', linewidth=1)
+    forceAspect(ax2, a.shape[1]/float(a.shape[0]))
+    ax3.imshow(scipy.misc.imread("/Users/adria/Desktop/Montezuma's Revenge (1984) (Parker Bros).png")[::-1], origin='lower', extent=[x1,x2,y1,y2])
+    ax3.grid(color='r', linestyle='-', linewidth=1)
+    forceAspect(ax3, a.shape[1]/float(a.shape[0]))
+    fig.savefig('shaping.pdf')
 else:
     def print_arr(a):
         print ",\n".join(("{"+",".join("%s"%a[j,i] for i in range(a.shape[0]))+"}")
@@ -179,3 +188,9 @@ else:
     print "}, {"
     print_arr(b)
     print "}};"
+
+    joint = np.empty(shape=(2,0x100,0x100), dtype=np.float64)
+    joint[0,...] = a
+    joint[1,...] = b
+    with open("shaping.pkl", "wb") as f:
+        cPickle.dump(joint, f)

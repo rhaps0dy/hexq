@@ -12,7 +12,7 @@ namespace hexq {
  */
 typedef int Action;
 typedef int State;
-typedef double Reward;
+typedef float Reward;
 /// Cartesian product: States x Actions
 typedef int StateAction;
 
