@@ -21,11 +21,11 @@ protected:
 		ASSERT(0 <= var && var < sizeof(n), "Avoid out of bounds errors");
 		return n[var];
 	}
-	Reward ComputeState(reward_t r);
 	ALEInterface ale_;
 	bool lost_life_;
 	Reward old_p_;
 public:
+	Reward ComputeState(reward_t r, Reward &nophi);
 	static constexpr int FRAME_SKIP = 4;
 	Action n_actions(State s) const { return 8; }
 	/// Randomly sets the state of the domain

@@ -18,7 +18,7 @@ const vector<ALEAction> MontezumaMdp::ale_actions = {
 	PLAYER_A_LEFTFIRE
 };
 
-Reward MontezumaMdp::ComputeState(reward_t r) {
+Reward MontezumaMdp::ComputeState(reward_t r, Reward &nophi) {
 	variables_[0] = ale_.getRAM().get(0xaf) - 0x16;
 	variables_[1] = ale_.getRAM().get(0xaa);
 	variables_[2] = ale_.getRAM().get(0xab);
@@ -36,7 +36,8 @@ Reward MontezumaMdp::ComputeState(reward_t r) {
 		variables_[4] = 1;
 	Reward pp = MarkovDecisionProcess::DISCOUNT*p - old_p_;
 	old_p_ = p;
-	return r/100. + pp;
+	nophi = r/100.;
+	return nophi + pp;
 }
 
 Reward MontezumaMdp::TakeAction(Action action) {
@@ -45,7 +46,8 @@ Reward MontezumaMdp::TakeAction(Action action) {
 	for(int i=0; i<FRAME_SKIP; i++)
 		r += ale_.act(ale_actions[action]);
 	lost_life_ = lost_life_ || ale_.lives() < l;
-	return ComputeState(r);
+	Reward nophi;
+	return ComputeState(r, nophi);
 }
 
 typedef uniform_int_distribution<int> Rand;
@@ -72,7 +74,7 @@ MontezumaMdp::MontezumaMdp() : MarkovDecisionProcess(6), lost_life_(false), old_
 	variables_[4] = 1;
 
 	ale_.setInt("random_seed", 1234);
-	ale_.setBool("display_screen", false);
+	ale_.setBool("display_screen", true);
 	ale_.setBool("sound", false);
 	ale_.setInt("fragsize", 64);
 	ale_.setFloat("repeat_action_probability", 0);
