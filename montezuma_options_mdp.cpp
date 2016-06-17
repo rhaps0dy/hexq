@@ -145,12 +145,12 @@ Reward MontezumaOptionsMdp::TakeAction(Action action) {
 			} else {
 				first_strike=true;
 			}
+			lost_life_ = lost_life_ || ale_.lives() < start_lives;
 			phi = ComputeState(ale_.act(PLAYER_A_NOOP), nophi);
 			r += discount * phi;
 			total_phi += phi;
 			total_nophi += nophi;
 			discount *= MarkovDecisionProcess::DISCOUNT;
-			lost_life_ = lost_life_ || ale_.lives() < start_lives;
 			DISPLAY(display_);
 			elapsed_time++;
 			i++;
@@ -187,7 +187,6 @@ void MontezumaOptionsMdp::Reset() {
 	MontezumaMdp::Reset();
 	acc_reward_ = acc_reward_phi_ = 0;
 	total_elapsed_time_ = 0;
-	printf("look ma i reset\n");
 }
 
 void MontezumaOptionsMdp::SaveEpisodeRewards() {

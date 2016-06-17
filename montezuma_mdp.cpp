@@ -25,7 +25,7 @@ Reward MontezumaMdp::ComputeState(reward_t r, Reward &nophi) {
 	variables_[3] = (ale_.getRAM().get(0xc1) & 0x1e ? 1 : 0);
 	variables_[5] = (ale_.getRAM().get(0xd8) >= 8 ? 1 : 0);
 	Reward p;
-	if(variables_[5] == 0) {
+	if(variables_[5] == 0 && !lost_life_) {
 		p = max(potential[variables_[3]][variables_[2]][variables_[1]], 0.) + 1.;
 	} else {
 		p = 1.;
@@ -74,7 +74,7 @@ MontezumaMdp::MontezumaMdp() : MarkovDecisionProcess(6), lost_life_(false), old_
 	variables_[4] = 1;
 
 	ale_.setInt("random_seed", 1234);
-	ale_.setBool("display_screen", true);
+	ale_.setBool("display_screen", false);
 	ale_.setBool("sound", false);
 	ale_.setInt("fragsize", 64);
 	ale_.setFloat("repeat_action_probability", 0);
