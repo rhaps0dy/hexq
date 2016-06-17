@@ -145,8 +145,9 @@ Reward MontezumaOptionsMdp::TakeAction(Action action) {
 			} else {
 				first_strike=true;
 			}
+			reward_t act_r = ale_.act(PLAYER_A_NOOP);
 			lost_life_ = lost_life_ || ale_.lives() < start_lives;
-			phi = ComputeState(ale_.act(PLAYER_A_NOOP), nophi);
+			phi = ComputeState(act_r, nophi);
 			r += discount * phi;
 			total_phi += phi;
 			total_nophi += nophi;
