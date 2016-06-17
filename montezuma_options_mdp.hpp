@@ -11,16 +11,11 @@ namespace hexq {
 class MontezumaOptionsMdp : public MontezumaMdp {
 protected:
 	DisplayScreen *display_;
-	Reward acc_reward_, acc_reward_phi_;
-	size_t total_elapsed_time_;
 public:
 	Reward TakeAction(Action action);
 	MontezumaOptionsMdp();
-	std::string phi_file, nophi_file;
 	size_t last_elapsed_time;
-	void SaveEpisodeRewards();
 	std::vector<Reward> discount_exp;
-	void Reset();
 };
 
 }

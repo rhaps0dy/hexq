@@ -24,6 +24,9 @@ protected:
 	ALEInterface ale_;
 	bool lost_life_;
 	Reward old_p_;
+
+	Reward acc_reward_, acc_reward_phi_;
+	size_t total_elapsed_time_;
 public:
 	Reward ComputeState(reward_t r, Reward &nophi);
 	static constexpr int FRAME_SKIP = 4;
@@ -37,6 +40,11 @@ public:
 	/// Print enough backspaces so that the next MontezumaMdp::Print prints
 	/// over the previous one.
 	void PrintBackspace() const;
+	void SaveEpisodeRewards();
+	std::string phi_file, nophi_file;
+
+	size_t last_elapsed_time;
+	std::vector<Reward> discount_exp;
 };
 
 }

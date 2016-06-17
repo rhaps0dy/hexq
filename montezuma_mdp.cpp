@@ -46,14 +46,21 @@ Reward MontezumaMdp::TakeAction(Action action) {
 	for(int i=0; i<FRAME_SKIP; i++)
 		r += ale_.act(ale_actions[action]);
 	lost_life_ = lost_life_ || ale_.lives() < l;
-	Reward nophi;
-	return ComputeState(r, nophi);
+	Reward nophi, phi;
+	phi = ComputeState(r, nophi);
+	acc_reward_ += nophi;
+	acc_reward_phi_ += phi;
+	total_elapsed_time_++;
+	return phi;
 }
 
 typedef uniform_int_distribution<int> Rand;
 void MontezumaMdp::Reset() {
 	lost_life_ = false;
 	ale_.reset_game();
+	acc_reward_ = acc_reward_phi_ = 0;
+	total_elapsed_time_ = 0;
+	last_elapsed_time = 1;
 }
 
 
@@ -80,6 +87,9 @@ MontezumaMdp::MontezumaMdp() : MarkovDecisionProcess(6), lost_life_(false), old_
 	ale_.setFloat("repeat_action_probability", 0);
 // ROM_DIR is defined in the Makefile
 	ale_.loadROM(ROM_DIR "/montezuma_revenge_original.bin");
+	discount_exp.resize(2);
+	discount_exp[0] = 1.;
+	discount_exp[1] = DISCOUNT;
 }
 
 void MontezumaMdp::Print() const {
@@ -90,5 +100,15 @@ void MontezumaMdp::Print() const {
 void MontezumaMdp::PrintBackspace() const {
 	printf("\033[A");
 }
+void MontezumaMdp::SaveEpisodeRewards() {
+	fstream results;
+	results.open(phi_file, fstream::app);
+	results << acc_reward_phi_ << ", " << total_elapsed_time_ << endl;
+	results.close();
+	results.open(nophi_file, fstream::app);
+	results << acc_reward_ << ", " << total_elapsed_time_ << endl;
+	results.close();
+}
+
 
 }

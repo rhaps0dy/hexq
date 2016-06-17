@@ -183,20 +183,4 @@ MontezumaOptionsMdp::MontezumaOptionsMdp() : MontezumaMdp() {
 		discount_exp[i] = discount_exp[i-1]*MarkovDecisionProcess::DISCOUNT;
 }
 
-void MontezumaOptionsMdp::Reset() {
-	MontezumaMdp::Reset();
-	acc_reward_ = acc_reward_phi_ = 0;
-	total_elapsed_time_ = 0;
-}
-
-void MontezumaOptionsMdp::SaveEpisodeRewards() {
-	fstream results;
-	results.open(phi_file, fstream::app);
-	results << acc_reward_phi_ << ", " << total_elapsed_time_ << endl;
-	results.close();
-	results.open(nophi_file, fstream::app);
-	results << acc_reward_ << ", " << total_elapsed_time_ << endl;
-	results.close();
-}
-
 };
