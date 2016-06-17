@@ -23,8 +23,8 @@ string experiment_name(string prefix) {
 	return prefix + string(buffer);
 }
 
-//static MontezumaOptionsMdp mdp;
-static MontezumaMdp mdp;
+static MontezumaOptionsMdp mdp;
+//static MontezumaMdp mdp;
 static const int n_actions = mdp.n_actions(0);
 static vector<Reward> Q(mdp.NumStateUniqueIDs()*n_actions, 0.0);
 static default_random_engine generator;
@@ -41,6 +41,10 @@ static const vector<string> arr = {
 };
 
 hexq::Action ChooseAction(State s, double epsilon) {
+/*	cout << "Choose an action:\n";
+	int i;
+	cin >> i;
+	return (hexq::Action) i;*/
 	uniform_real_distribution<double> exp_vs_exp(0, 1);
 	if(exp_vs_exp(generator) < epsilon) {
 		uniform_int_distribution<hexq::Action> choose_action(0, n_actions-1);
@@ -98,10 +102,13 @@ void evaluate(char *fname) {
 static double trace_discounts[STATE_TAIL_SIZE];
 
 int main(int argc, char **argv) {
-	string dirname = experiment_name("montezuma_revenge_phi2_anneal");
+	string dirname = experiment_name("montezuma_phi_options");
 	stringstream ss2;
 	ss2 << dirname << "/rewards.txt";
-	string results_file = ss2.str();
+	mdp.phi_file = ss2.str();
+	stringstream ss3;
+	ss3 << dirname << "/rewards_nophi.txt";
+	mdp.nophi_file = ss3.str();
 
 	for(size_t i=0; i<STATE_TAIL_SIZE; i++) {
 		static double d=1;
@@ -121,7 +128,7 @@ int main(int argc, char **argv) {
 	system(("mkdir " + dirname).c_str());
 
 	for(int episode=1; episode<=1000000; episode++) {
-		const double epsilon = max(0.1, 0.7-3e-4*episode);
+		const double epsilon = max(0.1, 0.7-3e-5*episode);
 		cout << "Episode " << episode << ", epsilon=" << epsilon << endl;
 		Reward total_reward = 0;
 		int step_n;
@@ -136,7 +143,7 @@ int main(int argc, char **argv) {
 			State next_s = mdp.StateUniqueID();
 			hexq::Action next_a = ChooseAction(next_s, epsilon);
 			StateAction next_sa = next_s*n_actions + next_a;
-			Reward delta = r + MarkovDecisionProcess::DISCOUNT*Q[next_sa] - Q[sa];
+			Reward delta = r + mdp.discount_exp[mdp.last_elapsed_time]*Q[next_sa] - Q[sa];
 			trace.push_front_overwriting(sa);
 			for(size_t i=0; i<trace.size(); i++)
 				Q[trace[i]] += ALPHA*delta*trace_discounts[i];
@@ -156,10 +163,7 @@ int main(int argc, char **argv) {
 			sparse_vector_save(ep, Q);
 			ep.close();
 		}
-		fstream results;
-		results.open(results_file, fstream::app);
-		results << total_reward << ", " << step_n << endl;
-		results.close();
+		mdp.SaveEpisodeRewards();
 	}
 	return 0;
 }

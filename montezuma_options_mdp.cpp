@@ -2,6 +2,7 @@
 #include <utility>
 #include <vector>
 #include <iostream>
+#include <fstream>
 
 using namespace std;
 
@@ -163,9 +164,11 @@ Reward MontezumaOptionsMdp::TakeAction(Action action) {
 		total_nophi += nophi;
 		lost_life_ = lost_life_ || ale_.lives() < start_lives;
 	}
-//	acc_reward_ += total_nophi;
-//	acc_reward_phi_ += total_phi;
-	printf("Finished action: elapsed time %zu, nophi_reward: %f, phi_reward: %f\n", elapsed_time, total_nophi, total_phi);
+	acc_reward_ += total_nophi;
+	acc_reward_phi_ += total_phi;
+	last_elapsed_time = elapsed_time;
+	total_elapsed_time_ += elapsed_time;
+//	printf("Finished action: elapsed time %zu, nophi_reward: %f, phi_reward: %f\n", elapsed_time, total_nophi, total_phi);
 	return r;
 }
 
@@ -175,6 +178,26 @@ MontezumaOptionsMdp::MontezumaOptionsMdp() : MontezumaMdp() {
 	display_ = NULL;
 //	display_ = ale_.theOSystem->p_display_screen;
 //	ale_.theOSystem->p_display_screen = NULL;
+	discount_exp.resize(MAX_FRAMES+10);
+	for(size_t i=1; i<discount_exp.size(); i++)
+		discount_exp[i] = discount_exp[i-1]*MarkovDecisionProcess::DISCOUNT;
+}
+
+void MontezumaOptionsMdp::Reset() {
+	MontezumaMdp::Reset();
+	acc_reward_ = acc_reward_phi_ = 0;
+	total_elapsed_time_ = 0;
+	printf("look ma i reset\n");
+}
+
+void MontezumaOptionsMdp::SaveEpisodeRewards() {
+	fstream results;
+	results.open(phi_file, fstream::app);
+	results << acc_reward_phi_ << ", " << total_elapsed_time_ << endl;
+	results.close();
+	results.open(nophi_file, fstream::app);
+	results << acc_reward_ << ", " << total_elapsed_time_ << endl;
+	results.close();
 }
 
 };
