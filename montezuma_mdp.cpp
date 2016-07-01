@@ -41,10 +41,8 @@ Reward MontezumaMdp::ComputeState(reward_t r, Reward &nophi) {
 }
 
 Reward MontezumaMdp::TakeAction(Action action) {
-	reward_t r = 0;
 	auto l = ale_.lives();
-	for(int i=0; i<FRAME_SKIP; i++)
-		r += ale_.act(ale_actions[action]);
+	reward_t r = ale_.act(ale_actions[action]);
 	lost_life_ = lost_life_ || ale_.lives() < l;
 	Reward nophi, phi;
 	phi = ComputeState(r, nophi);
@@ -82,8 +80,10 @@ MontezumaMdp::MontezumaMdp() : MarkovDecisionProcess(6), lost_life_(false), old_
 
 	ale_.setInt("random_seed", 1234);
 	ale_.setBool("display_screen", false);
+//	ale_.setString("record_screen_dir", "/home/adria/Programacio/TFG/hexq/Recorded");
 	ale_.setBool("sound", false);
 	ale_.setInt("fragsize", 64);
+	ale_.setInt("frame_skip", FRAME_SKIP);
 	ale_.setFloat("repeat_action_probability", 0);
 // ROM_DIR is defined in the Makefile
 	ale_.loadROM(ROM_DIR "/montezuma_revenge_original.bin");

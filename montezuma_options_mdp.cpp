@@ -43,6 +43,8 @@ bool does_value_change(ALEInterface &ale,
 		}
 	}
 	ale.restoreSystemState(s0);
+	ale.environment->processRAM();
+	ale.environment->processScreen();
 	return controllable;
 }
 constexpr size_t N_BACK_FRAMES = 6;
@@ -107,6 +109,8 @@ move_to_the(ALEInterface &ale, DisplayScreen *display, const Action action, cons
 		frames.resize(frames.size() - N_BACK_FRAMES);
 		printf("went back\n");
 		ale.restoreSystemState(frames.rbegin()->second);
+		ale.environment->processRAM();
+		ale.environment->processScreen();
 		DISPLAY(display);
 		hexq::Reward r;
 		(void)mdp.ComputeState(0, r);
