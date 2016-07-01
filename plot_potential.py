@@ -135,7 +135,7 @@ def progress(line, p):
 def fun2(y, x, key):
 #    if 0xba < y < 0xeb and 0x2a < x < 0x43:
 #        return -1
-    return progress(lines[key], np.array((x, y))) + 1.
+    return progress(lines[key], np.array((x, y)))
 
 stride = 1
 
@@ -176,7 +176,7 @@ if paint:
     ax2.imshow(b, origin='lower', extent=[x1,x2,y1,y2])
     ax2.grid(color='r', linestyle='-', linewidth=1)
     forceAspect(ax2, a.shape[1]/float(a.shape[0]))
-    ax3.imshow(scipy.misc.imread("/Users/adria/Desktop/Montezuma's Revenge (1984) (Parker Bros).png")[::-1], origin='lower', extent=[x1,x2,y1,y2])
+    ax3.imshow(scipy.misc.imread("montezuma_screen_1.png")[::-1], origin='lower', extent=[x1,x2,y1,y2])
     ax3.grid(color='r', linestyle='-', linewidth=1)
     forceAspect(ax3, a.shape[1]/float(a.shape[0]))
     fig.savefig('shaping.pdf')
