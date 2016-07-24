@@ -8,6 +8,7 @@ latex
 *.dot
 *.graph
 *.png
+!montezuma_screen_1.png
 
 # Compiled Object files
 *.slo

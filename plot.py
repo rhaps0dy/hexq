@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 
 import matplotlib.pyplot as plt
+import sys
 
 N = 1000
 
@@ -9,7 +10,7 @@ length = []
 ratio = []
 
 max_reward = 0
-with open('rewards.txt', 'r') as f:
+with open(sys.argv[1], 'r') as f:
     i = 0
     avg_reward = 0
     avg_length = 0
