@@ -113,7 +113,7 @@ int main(int argc, char **argv) {
 	for(size_t i=0; i<STATE_TAIL_SIZE; i++) {
 		static double d=1;
 		trace_discounts[i] = d;
-		d *= MarkovDecisionProcess::DISCOUNT*PROPAGATING_DECAY;
+		d *= mdp.DISCOUNT*PROPAGATING_DECAY;
 	}
 
 	if(argc == 2) {
@@ -127,6 +127,7 @@ int main(int argc, char **argv) {
 	}
 	system(("mkdir " + dirname).c_str());
 
+	mdp.LoadROM();
 	for(int episode=1; episode<=1000000; episode++) {
 		const double epsilon = max(0.1, 0.7-3e-5*episode);
 		cout << "Episode " << episode << ", epsilon=" << epsilon << endl;

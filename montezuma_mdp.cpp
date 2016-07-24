@@ -34,7 +34,7 @@ Reward MontezumaMdp::ComputeState(reward_t r, Reward &nophi) {
 		variables_[4] = 0;
 	else if(variables_[0] == 0x48-0x16)
 		variables_[4] = 1;
-	Reward pp = MarkovDecisionProcess::DISCOUNT*p - old_p_;
+	Reward pp = DISCOUNT*p - old_p_;
 	old_p_ = p;
 	nophi = r/100.;
 	return nophi + pp;
@@ -85,11 +85,14 @@ MontezumaMdp::MontezumaMdp() : MarkovDecisionProcess(6), lost_life_(false), old_
 	ale_.setBool("sound", false);
 	ale_.setInt("fragsize", 64);
 	ale_.setFloat("repeat_action_probability", 0);
-// ROM_DIR is defined in the Makefile
-	ale_.loadROM(ROM_DIR "/montezuma_revenge_original.bin");
 	discount_exp.resize(2);
 	discount_exp[0] = 1.;
 	discount_exp[1] = DISCOUNT;
+}
+
+void MontezumaMdp::LoadROM() {
+	// ROM_DIR is defined in the Makefile
+	ale_.loadROM(ROM_DIR "/montezuma_revenge_original.bin");
 }
 
 void MontezumaMdp::Print() const {

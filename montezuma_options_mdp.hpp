@@ -16,6 +16,7 @@ public:
 	MontezumaOptionsMdp();
 	size_t last_elapsed_time;
 	std::vector<Reward> discount_exp;
+	const double DISCOUNT = 0.9987476493904754; // .995 ^ .25
 };
 
 }

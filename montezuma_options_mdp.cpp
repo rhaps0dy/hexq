@@ -136,7 +136,7 @@ Reward MontezumaOptionsMdp::TakeAction(Action action) {
 	   action < 2 || action >= 6) {
 		total_phi = r = ComputeState(ale_.act(ale_action), total_nophi);
 		size_t i=0;
-		Reward discount = MarkovDecisionProcess::DISCOUNT;
+		Reward discount = DISCOUNT;
 		bool first_strike = true;
 		while(!lost_life_ && i<MAX_FRAMES) {
 			if(ale_.getRAM().get(0xd8) == 0x00 && ale_.getRAM().get(0xd6) == 0xff) {
@@ -151,7 +151,7 @@ Reward MontezumaOptionsMdp::TakeAction(Action action) {
 			r += discount * phi;
 			total_phi += phi;
 			total_nophi += nophi;
-			discount *= MarkovDecisionProcess::DISCOUNT;
+			discount *= DISCOUNT;
 			DISPLAY(display_);
 			elapsed_time++;
 			i++;
@@ -159,7 +159,7 @@ Reward MontezumaOptionsMdp::TakeAction(Action action) {
 	} else {
 		total_phi = r = total_nophi = 0;
 		r += move_to_the(ale_, display_, ale_action,
-						 MarkovDecisionProcess::DISCOUNT, *this,
+						 DISCOUNT, *this,
 						 elapsed_time, nophi, phi);
 		total_phi += phi;
 		total_nophi += nophi;
@@ -181,7 +181,7 @@ MontezumaOptionsMdp::MontezumaOptionsMdp() : MontezumaMdp() {
 //	ale_.theOSystem->p_display_screen = NULL;
 	discount_exp.resize(MAX_FRAMES+10);
 	for(size_t i=1; i<discount_exp.size(); i++)
-		discount_exp[i] = discount_exp[i-1]*MarkovDecisionProcess::DISCOUNT;
+		discount_exp[i] = discount_exp[i-1]*DISCOUNT;
 }
 
 };
