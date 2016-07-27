@@ -102,7 +102,7 @@ void evaluate(char *fname) {
 static double trace_discounts[STATE_TAIL_SIZE];
 
 int main(int argc, char **argv) {
-	string dirname = experiment_name("montezuma_phi_options");
+	string dirname = experiment_name(argv[2]);
 	stringstream ss2;
 	ss2 << dirname << "/rewards.txt";
 	mdp.phi_file = ss2.str();
@@ -116,7 +116,7 @@ int main(int argc, char **argv) {
 		d *= mdp.DISCOUNT*PROPAGATING_DECAY;
 	}
 
-	if(argc == 2) {
+	if(argc >= 2) {
 		ifstream q(argv[1]);
 		sparse_vector_load(q, Q);
 		q.close();
@@ -129,7 +129,7 @@ int main(int argc, char **argv) {
 
 	mdp.LoadROM();
 	for(int episode=1; episode<=1000000; episode++) {
-		const double epsilon = max(0.1, 0.7-3e-5*episode);
+		const double epsilon = 0.1;
 		cout << "Episode " << episode << ", epsilon=" << epsilon << endl;
 		Reward total_reward = 0;
 		int step_n;

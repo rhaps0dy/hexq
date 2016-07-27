@@ -23,16 +23,16 @@ with open(sys.argv[1], 'r') as f:
         avg_reward += r
         avg_length += float(l[1])
         if i == N:
-            reward.append(avg_reward/i+1)
-            length.append(avg_length/i+1)
+            reward.append(avg_reward/i)
+            length.append(avg_length/i)
             ratio.append(avg_reward/avg_length);
             avg_reward = 0
             avg_length = 0
             i = 0
         i += 1
     if i != 0:
-        reward.append(avg_reward/i+1)
-        length.append(avg_length/i+1)
+        reward.append(avg_reward/i)
+        length.append(avg_length/i)
         ratio.append(avg_reward/avg_length);
 
 print "Max reward: ", max_reward

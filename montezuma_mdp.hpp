@@ -35,7 +35,7 @@ public:
 	void Reset();
 	Reward TakeAction(Action action);
 	bool terminated() const { return lost_life_ || ale_.game_over(); }
-	MontezumaMdp();
+	MontezumaMdp(double discount=0.995);
 	void LoadROM();
 	void Print() const;
 	/// Print enough backspaces so that the next MontezumaMdp::Print prints
@@ -46,7 +46,7 @@ public:
 
 	size_t last_elapsed_time;
 	std::vector<Reward> discount_exp;
-	const double DISCOUNT = 0.995;
+	const double DISCOUNT;
 };
 
 }

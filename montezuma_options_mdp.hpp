@@ -13,10 +13,10 @@ protected:
 	DisplayScreen *display_;
 public:
 	Reward TakeAction(Action action);
-	MontezumaOptionsMdp();
+	//MontezumaOptionsMdp(double discount=0.9987476493904754); // .995 ^ .25
+	MontezumaOptionsMdp(double discount=0.9995);
 	size_t last_elapsed_time;
 	std::vector<Reward> discount_exp;
-	const double DISCOUNT = 0.9987476493904754; // .995 ^ .25
 };
 
 }

@@ -177,9 +177,10 @@ Reward MontezumaOptionsMdp::TakeAction(Action action) {
 	return r;
 }
 
-MontezumaOptionsMdp::MontezumaOptionsMdp() : MontezumaMdp() {
+	MontezumaOptionsMdp::MontezumaOptionsMdp(double discount)
+		: MontezumaMdp(discount) {
 	ale_.setFloat("repeat_action_probability", 0.0);
-	ale_.setInt("frame_skip", FRAME_SKIP);
+	ale_.setInt("frame_skip", 1);
 	display_ = NULL;
 //	display_ = ale_.theOSystem->p_display_screen;
 //	ale_.theOSystem->p_display_screen = NULL;

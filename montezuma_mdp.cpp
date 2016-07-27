@@ -62,7 +62,9 @@ void MontezumaMdp::Reset() {
 }
 
 
-MontezumaMdp::MontezumaMdp() : MarkovDecisionProcess(6), lost_life_(false), old_p_(1.) {
+	MontezumaMdp::MontezumaMdp(double discount)
+		: MarkovDecisionProcess(6), lost_life_(false), old_p_(1.),
+		  DISCOUNT(discount) {
 	variable_freq_[0] = 0;
 	variable_freq_[1] = 1;
 	variable_freq_[2] = 2;
@@ -79,8 +81,8 @@ MontezumaMdp::MontezumaMdp() : MarkovDecisionProcess(6), lost_life_(false), old_
 	variables_[4] = 1;
 
 	ale_.setInt("random_seed", 1234);
-	ale_.setBool("display_screen", false);
-//	ale_.setString("record_screen_dir", "/home/adria/Programacio/TFG/hexq/Recorded");
+	ale_.setBool("display_screen", true);
+	ale_.setString("record_screen_dir", "/home/adria/Programacio/solving-mr-planning-rl/hexq/recorded");
 	ale_.setBool("sound", false);
 	ale_.setInt("fragsize", 64);
 	ale_.setInt("frame_skip", FRAME_SKIP);
