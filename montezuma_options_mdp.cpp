@@ -1,6 +1,4 @@
 #include "montezuma_options_mdp.hpp"
-#include <utility>
-#include <vector>
 #include <iostream>
 #include <fstream>
 
@@ -53,7 +51,7 @@ constexpr int MAX_FRAMES = 120;
 
 #define DISPLAY(display) do{if(display) display->display_screen(); }while(0)
 static hexq::Reward
-move_to_the(ALEInterface &ale, DisplayScreen *display, const Action action, const hexq::Reward discount_rate, hexq::MontezumaOptionsMdp &mdp, size_t &elapsed_time, hexq::Reward &nophi_reward, hexq::Reward &phi_reward) {
+move_to_the(ALEInterface &ale, DisplayScreen *display, const Action action, const hexq::Reward discount_rate, hexq::MontezumaOptionsMdp &mdp, size_t &elapsed_time, hexq::Reward &nophi_reward, hexq::Reward &phi_reward, vector<pair<hexq::Reward,hexq::State> > &all_steps) {
 	const vector<Action> *axis_actions;
 	unsigned int unchanging_addr, changing_addr;
 	if(action == PLAYER_A_LEFT || action == PLAYER_A_RIGHT) {
@@ -68,10 +66,12 @@ move_to_the(ALEInterface &ale, DisplayScreen *display, const Action action, cons
 
 	const bool initial_cannot_change_axis =
 		!does_value_change(ale, *axis_actions, unchanging_addr);
+	hexq::State prev_s = mdp.StateUniqueID();
 	phi_reward = mdp.ComputeState(ale.act(action), nophi_reward);
 
 	vector<pair<pair<hexq::Reward, hexq::Reward>, ALEState> > frames;
 	frames.push_back(make_pair(make_pair(phi_reward, nophi_reward), ale.cloneSystemState()));
+	all_steps.push_back(make_pair(phi_reward, prev_s));
 	byte_t prev_changing = ale.getRAM().get(changing_addr);
 	const int initial_lives = ale.lives();
 	int n_frames_unchanged;
@@ -79,9 +79,11 @@ move_to_the(ALEInterface &ale, DisplayScreen *display, const Action action, cons
 	bool lost_life =  false;
 	for(size_t max_n_iterations=0; !lost_life && max_n_iterations<MAX_FRAMES; max_n_iterations++) {
 		hexq::Reward nophi_r;
+		prev_s = mdp.StateUniqueID();
 		hexq::Reward reward = mdp.ComputeState(ale.act(action), nophi_r);
 
 		frames.push_back(make_pair(make_pair(reward, nophi_r), ale.cloneSystemState()));
+		all_steps.push_back(make_pair(reward, prev_s));
 		DISPLAY(display);
 		controllable = !(ale.getRAM().get(0xd8) != 0x00 || ale.getRAM().get(0xd6) != 0xff);
 		if(!controllable)break;
@@ -106,7 +108,9 @@ move_to_the(ALEInterface &ale, DisplayScreen *display, const Action action, cons
 		lost_life = ale.lives() < initial_lives;
 	}
 	if((lost_life || !controllable) && frames.size() > N_BACK_FRAMES) {
-		frames.resize(frames.size() - N_BACK_FRAMES);
+		size_t new_size = frames.size() - N_BACK_FRAMES;
+		frames.resize(new_size);
+		all_steps.resize(new_size);
 		printf("went back\n");
 		ale.restoreSystemState(frames.rbegin()->second);
 		ale.environment->processRAM();
@@ -117,7 +121,7 @@ move_to_the(ALEInterface &ale, DisplayScreen *display, const Action action, cons
 	}
 	hexq::Reward discount = 1.;
 	hexq::Reward total_reward = 0;
-	nophi_reward = 0;
+	phi_reward = nophi_reward = 0;
 	for(size_t i=0; i<frames.size(); i++) {
 		total_reward += discount*frames.at(i).first.first;
 		discount *= discount_rate;
@@ -130,15 +134,18 @@ move_to_the(ALEInterface &ale, DisplayScreen *display, const Action action, cons
 
 namespace hexq {
 
-Reward MontezumaOptionsMdp::TakeAction(Action action) {
+vector<pair<Reward, State> > MontezumaOptionsMdp::TakeActionVector(Action action) {
 	const ALEAction ale_action = ale_actions.at(action);
 	auto start_lives = ale_.lives();
 	Reward nophi, phi, total_nophi, total_phi, r;
 	size_t elapsed_time = 1;
 	DISPLAY(display_);
+	vector<pair<Reward, State> > all_steps;
 	if((ale_.getRAM().get(0xd8) != 0x00 || ale_.getRAM().get(0xd6) != 0xff) ||
 	   action < 2 || action >= 6) {
+		State prev_s = StateUniqueID();
 		total_phi = r = ComputeState(ale_.act(ale_action), total_nophi);
+		all_steps.push_back(make_pair(r, prev_s));
 		size_t i=0;
 		Reward discount = DISCOUNT;
 		bool first_strike = true;
@@ -149,9 +156,11 @@ Reward MontezumaOptionsMdp::TakeAction(Action action) {
 			} else {
 				first_strike=true;
 			}
+			prev_s = StateUniqueID();
 			reward_t act_r = ale_.act(PLAYER_A_NOOP);
 			lost_life_ = lost_life_ || ale_.lives() < start_lives;
 			phi = ComputeState(act_r, nophi);
+			all_steps.push_back(make_pair(phi, prev_s));
 			r += discount * phi;
 			total_phi += phi;
 			total_nophi += nophi;
@@ -161,12 +170,8 @@ Reward MontezumaOptionsMdp::TakeAction(Action action) {
 			i++;
 		}
 	} else {
-		total_phi = r = total_nophi = 0;
-		r += move_to_the(ale_, display_, ale_action,
-						 DISCOUNT, *this,
-						 elapsed_time, nophi, phi);
-		total_phi += phi;
-		total_nophi += nophi;
+		r = move_to_the(ale_, display_, ale_action, DISCOUNT, *this,
+						elapsed_time, total_nophi, total_phi, all_steps);
 		lost_life_ = lost_life_ || ale_.lives() < start_lives;
 	}
 	acc_reward_ += total_nophi;
@@ -174,7 +179,11 @@ Reward MontezumaOptionsMdp::TakeAction(Action action) {
 	last_elapsed_time = elapsed_time;
 	total_elapsed_time_ += elapsed_time;
 //	printf("Finished action: elapsed time %zu, nophi_reward: %f, phi_reward: %f\n", elapsed_time, total_nophi, total_phi);
-	return r;
+	phi = 0;
+	for(size_t i=0; i<all_steps.size(); i++)
+		phi += all_steps[i].first;
+	assert(phi == total_phi);
+	return all_steps;
 }
 
 	MontezumaOptionsMdp::MontezumaOptionsMdp(double discount)

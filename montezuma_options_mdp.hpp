@@ -3,6 +3,8 @@
 
 #include "montezuma_mdp.hpp"
 #include <string>
+#include <vector>
+#include <utility>
 
 namespace hexq {
 
@@ -12,7 +14,7 @@ class MontezumaOptionsMdp : public MontezumaMdp {
 protected:
 	DisplayScreen *display_;
 public:
-	Reward TakeAction(Action action);
+	std::vector<std::pair<Reward, State> > TakeActionVector(Action action);
 	//MontezumaOptionsMdp(double discount=0.9987476493904754); // .995 ^ .25
 	MontezumaOptionsMdp(double discount=0.9995);
 	size_t last_elapsed_time;

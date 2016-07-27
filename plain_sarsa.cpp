@@ -76,29 +76,6 @@ constexpr double PROPAGATING_DECAY = .96;
 constexpr size_t STATE_TAIL_SIZE = 10;
 constexpr double ALPHA = .01;
 
-void evaluate(char *fname) {
-	cout << "Evaluating \"" << fname << "\": ";
-	ifstream q(fname);
-	sparse_vector_load(q, Q);
-	q.close();
-
-	constexpr int N_EPS = 1;
-	constexpr double EPSILON = -1;
-	Reward total_reward = 0;
-	for(int episode=0; episode<N_EPS; episode++) {
-		Reward r=0;
-		mdp.Reset();
-		for(size_t step_n=0; step_n<MAX_STEPS_EPISODE && !mdp.terminated(); step_n++)
-			r += mdp.TakeAction(ChooseAction(mdp.StateUniqueID(), EPSILON));
-		if(N_EPS > 1) {
-			cout << "Reward from episode " << episode << ": " << r << endl;
-			r /= N_EPS;
-		}
-		total_reward += r;
-	}
-	cout << "Total reward: " << total_reward << endl << endl;
-}
-
 static double trace_discounts[STATE_TAIL_SIZE];
 
 int main(int argc, char **argv) {
@@ -120,10 +97,6 @@ int main(int argc, char **argv) {
 		ifstream q(argv[1]);
 		sparse_vector_load(q, Q);
 		q.close();
-	} else if(argc > 2) {
-		for(int i=1; i<argc; i++)
-			evaluate(argv[i]);
-		return 0;
 	}
 	system(("mkdir " + dirname).c_str());
 
@@ -131,7 +104,7 @@ int main(int argc, char **argv) {
 	for(int episode=1; episode<=1000000; episode++) {
 		const double epsilon = 0.1;
 		cout << "Episode " << episode << ", epsilon=" << epsilon << endl;
-		Reward total_reward = 0;
+		Reward sum_of_all_returns = 0;
 		int step_n;
 		CircularBuffer<StateAction> trace(STATE_TAIL_SIZE);
 
@@ -140,22 +113,28 @@ int main(int argc, char **argv) {
 		hexq::Action a = ChooseAction(s, epsilon);
 		StateAction sa = s*n_actions + a;
 		for(step_n=1; step_n<=MAX_STEPS_EPISODE && !mdp.terminated(); step_n++) {
-			Reward r = mdp.TakeAction(a);
+			vector<pair<Reward, State> > rs = mdp.TakeActionVector(a);
 			State next_s = mdp.StateUniqueID();
 			hexq::Action next_a = ChooseAction(next_s, epsilon);
 			StateAction next_sa = next_s*n_actions + next_a;
-			Reward delta = r + mdp.discount_exp[mdp.last_elapsed_time]*Q[next_sa] - Q[sa];
-			trace.push_front_overwriting(sa);
-			for(size_t i=0; i<trace.size(); i++)
-				Q[trace[i]] += ALPHA*delta*trace_discounts[i];
+			Reward ret = Q[next_sa];
+			// Calculate n-step updates, n=rs.size()
+			for(size_t i=rs.size()-1; i<rs.size(); i--) {
+				ret = rs[i].first + mdp.DISCOUNT*ret;
+				sa = rs[i].second*n_actions + a;
+				Reward delta = ret - Q[sa];
+				trace.push_front_overwriting(sa);
+				for(size_t i=0; i<trace.size(); i++)
+					Q[trace[i]] += ALPHA*delta*trace_discounts[i];
+			}
 			sa = next_sa;
 			a = next_a;
 
-			total_reward += r;
+			sum_of_all_returns += ret;
 			if(step_n % 1000 == 0)
-				cout << "step " << step_n << ", total_reward " << total_reward << endl;
+				cout << "step " << step_n << ", sum_of_all_returns " << sum_of_all_returns << endl;
 		}
-		cout << "step " << step_n << ", total_reward " << total_reward << endl;
+		cout << "step " << step_n << ", sum_of_all_returns " << sum_of_all_returns << endl;
 		// Write episode results to disk
 		if(episode % 1000 == 0) {
 			stringstream ss;
