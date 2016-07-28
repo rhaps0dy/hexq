@@ -73,13 +73,13 @@ hexq::Action ChooseAction(State s, double epsilon) {
 
 constexpr int MAX_STEPS_EPISODE = 100000;
 constexpr double PROPAGATING_DECAY = .96;
-constexpr size_t STATE_TAIL_SIZE = 10;
+constexpr size_t STATE_TAIL_SIZE = 1;
 constexpr double ALPHA = .01;
 
 static double trace_discounts[STATE_TAIL_SIZE];
 
 int main(int argc, char **argv) {
-	string dirname = experiment_name(argv[2]);
+	string dirname = experiment_name(argv[1]);
 	stringstream ss2;
 	ss2 << dirname << "/rewards.txt";
 	mdp.phi_file = ss2.str();
@@ -93,8 +93,8 @@ int main(int argc, char **argv) {
 		d *= mdp.DISCOUNT*PROPAGATING_DECAY;
 	}
 
-	if(argc >= 2) {
-		ifstream q(argv[1]);
+	if(argc > 2) {
+		ifstream q(argv[2]);
 		sparse_vector_load(q, Q);
 		q.close();
 	}
@@ -102,7 +102,7 @@ int main(int argc, char **argv) {
 
 	mdp.LoadROM();
 	for(int episode=1; episode<=1000000; episode++) {
-		const double epsilon = 0.1;
+		const double epsilon = max(0.01, 0.2-episode*1e-3);
 		cout << "Episode " << episode << ", epsilon=" << epsilon << endl;
 		Reward sum_of_all_returns = 0;
 		int step_n;

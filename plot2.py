@@ -1,7 +1,8 @@
 #!/usr/bin/env python2
 
-import matplotlib.pyplot as plt
 import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 import sys
 
 matplotlib.rcParams.update({'font.size': 22})
