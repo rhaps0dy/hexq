@@ -80,9 +80,6 @@ void MontezumaMdp::Reset() {
 
 	variables_[4] = 1;
 
-	ale_.setInt("random_seed", 1234);
-	ale_.setBool("display_screen", true);
-	ale_.setString("record_screen_dir", "/home/adria/Programacio/solving-mr-planning-rl/hexq/recorded");
 	ale_.setBool("sound", false);
 	ale_.setInt("fragsize", 64);
 	ale_.setInt("frame_skip", FRAME_SKIP);

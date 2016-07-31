@@ -141,15 +141,21 @@ vector<pair<Reward, State> > MontezumaOptionsMdp::TakeActionVector(Action action
 	size_t elapsed_time = 1;
 	DISPLAY(display_);
 	vector<pair<Reward, State> > all_steps;
+#ifndef OPTIONS_ARE_PRIMITIVE_FRAMESKIP
 	if((ale_.getRAM().get(0xd8) != 0x00 || ale_.getRAM().get(0xd6) != 0xff) ||
 	   action < 2 || action >= 6) {
+#endif
 		State prev_s = StateUniqueID();
 		total_phi = r = ComputeState(ale_.act(ale_action), total_nophi);
 		all_steps.push_back(make_pair(r, prev_s));
-		size_t i=0;
+		size_t i=1;
 		Reward discount = DISCOUNT;
 		bool first_strike = true;
+#ifndef OPTIONS_ARE_PRIMITIVE_FRAMESKIP
 		while(!lost_life_ && i<MAX_FRAMES) {
+#else
+		while(i<FRAME_SKIP || (!lost_life_ && i<MAX_FRAMES)) {
+#endif
 			if(ale_.getRAM().get(0xd8) == 0x00 && ale_.getRAM().get(0xd6) == 0xff) {
 				if(first_strike) first_strike=false;
 				else break;
@@ -169,11 +175,13 @@ vector<pair<Reward, State> > MontezumaOptionsMdp::TakeActionVector(Action action
 			elapsed_time++;
 			i++;
 		}
+#ifndef OPTIONS_ARE_PRIMITIVE_FRAMESKIP
 	} else {
 		r = move_to_the(ale_, display_, ale_action, DISCOUNT, *this,
 						elapsed_time, total_nophi, total_phi, all_steps);
 		lost_life_ = lost_life_ || ale_.lives() < start_lives;
 	}
+#endif
 	acc_reward_ += total_nophi;
 	acc_reward_phi_ += total_phi;
 	last_elapsed_time = elapsed_time;

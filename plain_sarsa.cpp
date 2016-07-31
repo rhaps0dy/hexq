@@ -23,8 +23,12 @@ string experiment_name(string prefix) {
 	return prefix + string(buffer);
 }
 
-static MontezumaOptionsMdp mdp;
-//static MontezumaMdp mdp;
+#ifdef USE_OPTIONS
+	static MontezumaOptionsMdp mdp;
+#else
+	static MontezumaMdp mdp;
+#endif
+
 static const int n_actions = mdp.n_actions(0);
 static vector<Reward> Q(mdp.NumStateUniqueIDs()*n_actions, 0.0);
 static default_random_engine generator;
@@ -102,7 +106,8 @@ int main(int argc, char **argv) {
 
 	mdp.LoadROM();
 	for(int episode=1; episode<=1000000; episode++) {
-		const double epsilon = max(0.01, 0.2-episode*1e-3);
+		// Edit to change the epsilon or add annealing
+		const double epsilon = max(0.01, .7-5e-5*episode);
 		cout << "Episode " << episode << ", epsilon=" << epsilon << endl;
 		Reward sum_of_all_returns = 0;
 		int step_n;

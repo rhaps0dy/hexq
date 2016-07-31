@@ -11,8 +11,16 @@ set(HAVE_EMOJI OFF CACHE BOOL "Whether to use emoji when drawing the taxi domain
 if(HAVE_EMOJI)
 	add_definitions(-DHAVE_EMOJI)
 endif(HAVE_EMOJI)
+set(USE_OPTIONS OFF CACHE BOOL "Whether to use options in playing MR")
+set(Q_EACH_FRAME OFF CACHE BOOL "Whether to update the Q table every frame instead of every frame_skip. Has no effect if using options")
+if(Q_EACH_FRAME AND NOT USE_OPTIONS)
+	add_definitions(-DUSE_OPTIONS)
+	add_definitions(-DOPTIONS_ARE_PRIMITIVE_FRAMESKIP)
+elseif(USE_OPTIONS)
+	add_definitions(-DUSE_OPTIONS)
+endif
 
-set(ALE_DIR "/home/adria/Programacio/Arcade-Learning-Environment" CACHE FILEPATH "Repository root for the Arcade Learning Environment")
+set(ALE_DIR "../ALE-montezuma-modified" CACHE FILEPATH "Repository root for the Arcade Learning Environment")
 
 include_directories(${ALE_DIR}/src)
 link_directories(${ALE_DIR})

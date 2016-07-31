@@ -4,17 +4,29 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import sys
+import os
+import math
 
-matplotlib.rcParams.update({'font.size': 22})
+W = 7.2
+matplotlib.rcParams.update({'font.size': 10,
+                            'figure.figsize': (W, (W/1.61803398875)*.86),
+                            'lines.linewidth': 1.5})
 #$plt.ylim(ymax=1)
 #$3plt.ylim(ymin=-0.5)
-#plt.xlim(xmin=0)
-#plt.xlim(xmax=100)
 
 N = 1000
 j = 0
-colors = 'rbgmk'
-for fname in sys.argv[1:-1]:
+#colors = 'mbgrk'
+colors = ["#83063b", "#bb7784", "#023fa5", "#7d87b9",
+          "#11c638", "#8dd593", "#ef9708", "#f0b98d"]
+fnames = []
+for a in sys.argv[1:]:
+    fnames.append(os.path.join(a, 'rewards_nophi.txt'))
+    fnames.append(os.path.join(a, 'rewards.txt'))
+fnames.append(sys.argv[1]+'.pdf')
+mlen = 99999
+rewards = []
+for fname in fnames[:-1]:
     reward = []
     length = []
     ratio = []
@@ -44,9 +56,15 @@ for fname in sys.argv[1:-1]:
             reward.append(avg_reward/i)
             length.append(avg_length/i)
             ratio.append(avg_reward/avg_length);
-    plt.plot(reward, colors[j])
+    reward.append(avg_reward/i)
+    rewards.append(reward)
+    mlen = min(mlen, len(reward))
     j += 1
-plt.savefig(sys.argv[-1])
+for j in reversed(range(len(rewards))):
+    plt.plot(rewards[j], colors[j])
+#mlen = int(math.ceil(mlen/10.))*10
+plt.xlim(xmin=0, xmax=mlen-1)
+plt.savefig(fnames[-1], bbox_inches='tight')
 #plt.plot(xx, reward, 'r-', xx, ratio, 'g-')
 #xx, length, 'b-', 
 

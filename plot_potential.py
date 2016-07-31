@@ -1,10 +1,17 @@
 #!/usr/bin/env python2
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import colormaps
 import scipy.misc
 import sys
 import cPickle
+
+W = 7.2
+matplotlib.rcParams.update({'font.size': 28,
+                            'figure.figsize': (W, (W/1.61803398875)*.86),
+                            'lines.linewidth': 1})
 
 plt.register_cmap(name='viridis', cmap=colormaps.viridis)
 plt.set_cmap(colormaps.viridis)
@@ -170,16 +177,22 @@ if paint:
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(w, h), dpi=dpi)
     y1, x1 = pic_yx_to_ram_yx(0, 0)
     y2, x2 = pic_yx_to_ram_yx(a.shape[0], a.shape[1])
+    grid_interval = np.arange(0, 160, 30)
     ax1.imshow(a, origin='lower', extent=[x1,x2,y1,y2])
     ax1.grid(color='r', linestyle='-', linewidth=1)
+    ax1.set_xticks(grid_interval)
     forceAspect(ax1, a.shape[1]/float(a.shape[0]))
     ax2.imshow(b, origin='lower', extent=[x1,x2,y1,y2])
     ax2.grid(color='r', linestyle='-', linewidth=1)
+    ax2.set_xticks(grid_interval)
     forceAspect(ax2, a.shape[1]/float(a.shape[0]))
     ax3.imshow(scipy.misc.imread("montezuma_screen_1.png")[::-1], origin='lower', extent=[x1,x2,y1,y2])
     ax3.grid(color='r', linestyle='-', linewidth=1)
+    ax3.set_xticks(grid_interval)
     forceAspect(ax3, a.shape[1]/float(a.shape[0]))
-    fig.savefig('shaping.pdf')
+    plt.setp(ax2.get_yticklabels(), visible=False)
+    plt.setp(ax3.get_yticklabels(), visible=False)
+    fig.savefig('shaping.pdf', bbox_inches='tight')
 else:
     def print_arr(a):
         print ",\n".join(("{"+",".join("%s"%a[j,i] for i in range(a.shape[0]))+"}")
