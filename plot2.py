@@ -7,7 +7,7 @@ import sys
 import os
 import math
 
-W = 7.2
+W = 7
 matplotlib.rcParams.update({'font.size': 10,
                             'figure.figsize': (W, (W/1.61803398875)*.86),
                             'lines.linewidth': 1.5})

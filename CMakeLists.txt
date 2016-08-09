@@ -18,7 +18,7 @@ if(Q_EACH_FRAME AND NOT USE_OPTIONS)
 	add_definitions(-DOPTIONS_ARE_PRIMITIVE_FRAMESKIP)
 elseif(USE_OPTIONS)
 	add_definitions(-DUSE_OPTIONS)
-endif
+endif()
 
 set(ALE_DIR "../ALE-montezuma-modified" CACHE FILEPATH "Repository root for the Arcade Learning Environment")
 
